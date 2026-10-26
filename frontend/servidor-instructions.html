@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Instrucciones - Lingüízate</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: white;
+        }
+        .container {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 30px;
+            border-radius: 20px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 2.5rem;
+        }
+        .step {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 15px;
+            border-left: 5px solid #4CAF50;
+        }
+        .step h3 {
+            margin-top: 0;
+            color: #4CAF50;
+        }
+        .code {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 15px;
+            border-radius: 10px;
+            font-family: 'Courier New', monospace;
+            margin: 10px 0;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        .button {
+            display: inline-block;
+            background: #4CAF50;
+            color: white;
+            padding: 15px 30px;
+            text-decoration: none;
+            border-radius: 10px;
+            font-weight: bold;
+            margin: 10px 5px;
+            transition: all 0.3s ease;
+        }
+        .button:hover {
+            background: #45a049;
+            transform: translateY(-2px);
+        }
+        .warning {
+            background: rgba(255, 193, 7, 0.2);
+            border-left-color: #FFC107;
+            border: 1px solid rgba(255, 193, 7, 0.3);
+        }
+        .warning h3 {
+            color: #FFC107;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚀 Instrucciones para Ejecutar Lingüízate</h1>
+        
+        <div class="step">
+            <h3>📋 Paso 1: Abrir Terminal/Consola</h3>
+            <p>Presiona <strong>Windows + R</strong>, escribe <code>cmd</code> y presiona Enter.</p>
+            <p>O busca "Símbolo del sistema" en el menú de inicio.</p>
+        </div>
+
+        <div class="step">
+            <h3>📁 Paso 2: Navegar al Directorio</h3>
+            <p>Escribe el siguiente comando para ir a la carpeta del proyecto:</p>
+            <div class="code">cd D:\Linguizate\backend</div>
+            <p>Presiona Enter.</p>
+        </div>
+
+        <div class="step">
+            <h3>🖥️ Paso 3: Ejecutar Servidor Local</h3>
+            <p>Instala las dependencias y arranca el backend:</p>
+            <div class="code">npm install</div>
+            <div class="code">npm start</div>
+            <p>Presiona Enter y verás el mensaje que confirma el servidor en el puerto 3000.</p>
+        </div>
+
+        <div class="step">
+            <h3>🌐 Paso 4: Abrir la Aplicación</h3>
+            <p>Una vez que el servidor esté ejecutándose, abre tu navegador web y ve a:</p>
+            <div class="code">http://localhost:3000</div>
+            <p>O simplemente haz clic en el botón de abajo:</p>
+            <a href="http://localhost:3000" class="button" target="_blank">🎮 Abrir Lingüízate</a>
+        </div>
+
+        <div class="step warning">
+            <h3>⚠️ Importante</h3>
+            <p><strong>No cierres la ventana de la terminal</strong> mientras uses la aplicación. El servidor debe seguir ejecutándose.</p>
+            <p>Para detener el servidor, presiona <strong>Ctrl + C</strong> en la terminal.</p>
+        </div>
+
+        <div class="step">
+            <h3>🎯 ¿Por qué necesito esto?</h3>
+            <p>El backend sirve la interfaz y conserva usuarios, preguntas y partidas en SQLite. Por eso la aplicación debe abrirse desde el servidor y no directamente como un archivo.</p>
+        </div>
+
+        <div style="text-align: center; margin-top: 30px;">
+            <p>¿Necesitas ayuda? Revisa la consola del navegador (F12) para ver mensajes de error detallados.</p>
+        </div>
+    </div>
+</body>
+</html>

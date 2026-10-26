@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lingüízate - Versión Simple</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <!-- Pantalla de Inicio -->
+    <div id="inicio-screen" class="screen active">
+        <div class="container">
+            <div class="logo">
+                <i class="fas fa-language"></i>
+                <h1>Lingüízate</h1>
+                <p>Desafía tu conocimiento lingüístico</p>
+            </div>
+            
+            <div class="menu-buttons">
+                <button id="btn-jugar" class="btn-primary">
+                    <i class="fas fa-play"></i>
+                    Jugar
+                </button>
+                <button id="btn-login" class="btn-secondary">
+                    <i class="fas fa-user"></i>
+                    Iniciar Sesión
+                </button>
+                <button id="btn-admin" class="btn-secondary">
+                    <i class="fas fa-cog"></i>
+                    Administrador
+                </button>
+                <button id="btn-ranking" class="btn-secondary">
+                    <i class="fas fa-trophy"></i>
+                    Ranking Global
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Pantalla de Login -->
+    <div id="login-screen" class="screen">
+        <div class="container">
+            <div class="auth-form">
+                <h2>Iniciar Sesión</h2>
+                <p>Pantalla de login (simplificada)</p>
+                <button id="btn-back-inicio" class="btn-link">
+                    <i class="fas fa-arrow-left"></i>
+                    Volver al Inicio
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Pantalla de Admin -->
+    <div id="admin-screen" class="screen">
+        <div class="container">
+            <div class="admin-login">
+                <h2>Acceso Administrador</h2>
+                <p>Pantalla de admin (simplificada)</p>
+                <button id="btn-back-inicio-admin" class="btn-link">
+                    <i class="fas fa-arrow-left"></i>
+                    Volver al Inicio
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Pantalla de Categorías -->
+    <div id="categorias-screen" class="screen">
+        <div class="container">
+            <div class="header">
+                <h2>Selecciona una Categoría</h2>
+            </div>
+
+            <div class="categories-grid" id="categories-grid">
+                <!-- Las categorías se cargarán dinámicamente -->
+            </div>
+
+            <button id="btn-back-inicio-cat" class="btn-secondary">
+                <i class="fas fa-arrow-left"></i>
+                Volver al Inicio
+            </button>
+        </div>
+    </div>
+
+    <!-- Pantalla de Ranking -->
+    <div id="ranking-screen" class="screen">
+        <div class="container">
+            <div class="header">
+                <h2>Ranking Global</h2>
+                <p>Pantalla de ranking (simplificada)</p>
+            </div>
+
+            <button id="btn-back-inicio-ranking" class="btn-link">
+                <i class="fas fa-arrow-left"></i>
+                Volver al Inicio
+            </button>
+        </div>
+    </div>
+
+    <script src="simple.js"></script>
+</body>
+</html>

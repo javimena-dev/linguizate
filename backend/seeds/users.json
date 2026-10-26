@@ -1,0 +1,34 @@
+{
+  "users": [
+    {
+      "id": 1,
+      "email": "admin@linguizate.com",
+      "password": "admin123",
+      "name": "Administrador",
+      "isAdmin": true,
+      "score": 0,
+      "gamesPlayed": 0,
+      "achievements": []
+    },
+    {
+      "id": 2,
+      "email": "estudiante@linguizate.com",
+      "password": "estudiante123",
+      "name": "Estudiante",
+      "isAdmin": false,
+      "score": 1250,
+      "gamesPlayed": 8,
+      "achievements": ["Puntuación Alta", "Excelente"]
+    },
+    {
+      "id": 3,
+      "email": "profesor@linguizate.com",
+      "password": "profesor123",
+      "name": "Profesor",
+      "isAdmin": false,
+      "score": 3200,
+      "gamesPlayed": 15,
+      "achievements": ["Puntuación Alta", "Jugador Experto", "Maestro Lingüista"]
+    }
+  ]
+} 

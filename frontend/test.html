@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test - Lingüízate</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background: #f0f0f0;
+        }
+        .screen {
+            display: none;
+            padding: 20px;
+            background: white;
+            border-radius: 10px;
+            margin: 10px 0;
+        }
+        .screen.active {
+            display: block;
+        }
+        button {
+            padding: 10px 20px;
+            margin: 5px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            background: #4f46e5;
+            color: white;
+        }
+        button:hover {
+            background: #4338ca;
+        }
+        .debug {
+            background: #333;
+            color: white;
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+            font-family: monospace;
+        }
+    </style>
+</head>
+<body>
+    <h1>Test de Navegación</h1>
+    
+    <div class="debug" id="debug">
+        Estado: Inicializando...
+    </div>
+
+    <!-- Pantalla 1 -->
+    <div id="screen1" class="screen active">
+        <h2>Pantalla 1</h2>
+        <p>Esta es la pantalla inicial</p>
+        <button onclick="showScreen('screen2')">Ir a Pantalla 2</button>
+        <button onclick="showScreen('screen3')">Ir a Pantalla 3</button>
+    </div>
+
+    <!-- Pantalla 2 -->
+    <div id="screen2" class="screen">
+        <h2>Pantalla 2</h2>
+        <p>Esta es la segunda pantalla</p>
+        <button onclick="showScreen('screen1')">Volver a Pantalla 1</button>
+        <button onclick="showScreen('screen3')">Ir a Pantalla 3</button>
+    </div>
+
+    <!-- Pantalla 3 -->
+    <div id="screen3" class="screen">
+        <h2>Pantalla 3</h2>
+        <p>Esta es la tercera pantalla</p>
+        <button onclick="showScreen('screen1')">Volver a Pantalla 1</button>
+        <button onclick="showScreen('screen2')">Volver a Pantalla 2</button>
+    </div>
+
+    <script>
+        function showScreen(screenId) {
+            console.log('Intentando mostrar pantalla:', screenId);
+            
+            // Ocultar todas las pantallas
+            document.querySelectorAll('.screen').forEach(screen => {
+                screen.classList.remove('active');
+                console.log('Ocultando pantalla:', screen.id);
+            });
+            
+            // Mostrar la pantalla seleccionada
+            const targetScreen = document.getElementById(screenId);
+            if (targetScreen) {
+                targetScreen.classList.add('active');
+                console.log('Mostrando pantalla:', screenId);
+                
+                // Actualizar debug
+                document.getElementById('debug').textContent = `Pantalla activa: ${screenId}`;
+            } else {
+                console.error('No se encontró la pantalla:', screenId);
+                document.getElementById('debug').textContent = `Error: No se encontró la pantalla ${screenId}`;
+            }
+        }
+
+        // Verificar estado inicial
+        console.log('Estado inicial de las pantallas:');
+        document.querySelectorAll('.screen').forEach(screen => {
+            console.log(`${screen.id}: ${screen.classList.contains('active') ? 'activa' : 'inactiva'}`);
+        });
+    </script>
+</body>
+</html> 

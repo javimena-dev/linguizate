@@ -1,0 +1,264 @@
+{
+  "categories": [
+    {
+      "id": "general",
+      "name": "Lingüística General",
+      "icon": "fas fa-language",
+      "description": "Conceptos fundamentales y teorías generales de la lingüística",
+      "subcategories": [
+        {
+          "id": "introduccion_linguistica",
+          "name": "Introducción a la Lingüística",
+          "icon": "fas fa-book-open",
+          "description": "Conceptos básicos y fundamentales de la lingüística",
+          "questionCount": 15
+        },
+        {
+          "id": "filosofia_lenguaje",
+          "name": "Filosofía del Lenguaje",
+          "icon": "fas fa-lightbulb",
+          "description": "Relación entre lenguaje, pensamiento y realidad",
+          "questionCount": 15
+        },
+        {
+          "id": "gramatica_universal",
+          "name": "Gramática Universal",
+          "icon": "fas fa-universal-access",
+          "description": "Principios comunes a todas las lenguas humanas",
+          "questionCount": 15
+        }
+      ]
+    },
+    {
+      "id": "descriptiva",
+      "name": "Lingüística Descriptiva",
+      "icon": "fas fa-clipboard-list",
+      "description": "Análisis y descripción de lenguas específicas",
+      "subcategories": [
+        {
+          "id": "fonetica_fonologia_desc",
+          "name": "Fonética y Fonología",
+          "icon": "fas fa-volume-up",
+          "description": "Estudio de los sonidos y su organización en las lenguas",
+          "questionCount": 15
+        },
+        {
+          "id": "morfologia_desc",
+          "name": "Morfología",
+          "icon": "fas fa-puzzle-piece",
+          "description": "Estructura interna de las palabras",
+          "questionCount": 15
+        },
+        {
+          "id": "sintaxis_desc",
+          "name": "Sintaxis",
+          "icon": "fas fa-sitemap",
+          "description": "Estructura de las oraciones",
+          "questionCount": 15
+        },
+        {
+          "id": "semantica_desc",
+          "name": "Semántica",
+          "icon": "fas fa-brain",
+          "description": "Significado de las palabras y expresiones",
+          "questionCount": 15
+        },
+        {
+          "id": "pragmatica",
+          "name": "Pragmática",
+          "icon": "fas fa-comments",
+          "description": "Uso del lenguaje en contexto",
+          "questionCount": 15
+        }
+      ]
+    },
+    {
+      "id": "historica",
+      "name": "Lingüística Histórica",
+      "icon": "fas fa-history",
+      "description": "Evolución y cambio de las lenguas a lo largo del tiempo",
+      "subcategories": [
+        {
+          "id": "diacronica",
+          "name": "Lingüística Diacrónica",
+          "icon": "fas fa-clock",
+          "description": "Estudio de los cambios lingüísticos a través del tiempo",
+          "questionCount": 15
+        },
+        {
+          "id": "etimologia",
+          "name": "Etimología",
+          "icon": "fas fa-book-open",
+          "description": "Origen y evolución de las palabras",
+          "questionCount": 15
+        },
+        {
+          "id": "evolucion_lenguas",
+          "name": "Evolución de las Lenguas",
+          "icon": "fas fa-chart-line",
+          "description": "Procesos de cambio y desarrollo lingüístico",
+          "questionCount": 15
+        },
+        {
+          "id": "reconstruccion_historica",
+          "name": "Reconstrucción Histórica",
+          "icon": "fas fa-undo",
+          "description": "Métodos de reconstrucción de protolenguas",
+          "questionCount": 15
+        }
+      ]
+    },
+    {
+      "id": "sociolinguistica",
+      "name": "Sociolingüística",
+      "icon": "fas fa-users",
+      "description": "Relación entre lengua y sociedad",
+      "subcategories": [
+        {
+          "id": "variedades_dialectales",
+          "name": "Variedades Dialectales",
+          "icon": "fas fa-chart-line",
+          "description": "Diferencias dialectales y sociales",
+          "questionCount": 15
+        },
+        {
+          "id": "bilinguismo",
+          "name": "Bilingüismo y Diglosia",
+          "icon": "fas fa-balance-scale",
+          "description": "Coexistencia de variedades lingüísticas",
+          "questionCount": 15
+        },
+        {
+          "id": "actitudes",
+          "name": "Actitudes Lingüísticas",
+          "icon": "fas fa-heart",
+          "description": "Percepciones sobre las lenguas",
+          "questionCount": 15
+        },
+        {
+          "id": "contacto",
+          "name": "Contacto de Lenguas",
+          "icon": "fas fa-handshake",
+          "description": "Interacción entre diferentes lenguas",
+          "questionCount": 15
+        }
+      ]
+    },
+    {
+      "id": "psicolinguistica",
+      "name": "Psicolingüística",
+      "icon": "fas fa-brain",
+      "description": "Procesos cognitivos del lenguaje",
+      "subcategories": [
+        {
+          "id": "adquisicion",
+          "name": "Adquisición del Lenguaje",
+          "icon": "fas fa-baby",
+          "description": "Cómo aprendemos a hablar",
+          "questionCount": 15
+        },
+        {
+          "id": "procesamiento",
+          "name": "Procesamiento del Lenguaje",
+          "icon": "fas fa-cogs",
+          "description": "Cómo procesamos el lenguaje",
+          "questionCount": 15
+        },
+        {
+          "id": "trastornos",
+          "name": "Trastornos del Lenguaje",
+          "icon": "fas fa-stethoscope",
+          "description": "Alteraciones en el desarrollo del lenguaje",
+          "questionCount": 15
+        }
+      ]
+    },
+    {
+      "id": "computacional",
+      "name": "Lingüística Computacional",
+      "icon": "fas fa-laptop-code",
+      "description": "Aplicación de la informática al estudio del lenguaje",
+      "subcategories": [
+        {
+          "id": "nlp",
+          "name": "Procesamiento de Lenguaje Natural",
+          "icon": "fas fa-robot",
+          "description": "Algoritmos para procesar texto",
+          "questionCount": 15
+        },
+        {
+          "id": "traduccion",
+          "name": "Traducción Automática",
+          "icon": "fas fa-language",
+          "description": "Sistemas de traducción por computadora",
+          "questionCount": 15
+        },
+        {
+          "id": "corpus",
+          "name": "Lingüística de Corpus",
+          "icon": "fas fa-database",
+          "description": "Análisis de grandes conjuntos de texto",
+          "questionCount": 15
+        }
+      ]
+    },
+    {
+      "id": "aplicada",
+      "name": "Lingüística Aplicada",
+      "icon": "fas fa-tools",
+      "description": "Aplicaciones prácticas de la lingüística",
+      "subcategories": [
+        {
+          "id": "ensenanza",
+          "name": "Enseñanza de Lenguas",
+          "icon": "fas fa-chalkboard-teacher",
+          "description": "Métodos y teorías de enseñanza",
+          "questionCount": 15
+        },
+        {
+          "id": "lexicografia",
+          "name": "Lexicografía",
+          "icon": "fas fa-book",
+          "description": "Elaboración de diccionarios",
+          "questionCount": 15
+        },
+        {
+          "id": "planificacion",
+          "name": "Planificación Lingüística",
+          "icon": "fas fa-map",
+          "description": "Políticas lingüísticas y planificación",
+          "questionCount": 15
+        }
+      ]
+    },
+    {
+      "id": "diversidad_curiosidades",
+      "name": "Diversidad y Curiosidades Idiomáticas",
+      "icon": "fas fa-star",
+      "description": "Aspectos curiosos y diversos del lenguaje",
+      "subcategories": [
+        {
+          "id": "records_lenguaje",
+          "name": "Récords del Lenguaje",
+          "icon": "fas fa-trophy",
+          "description": "Datos extraordinarios y récords lingüísticos",
+          "questionCount": 15
+        },
+        {
+          "id": "ideolenguas",
+          "name": "Ideolenguas (Conlangs)",
+          "icon": "fas fa-magic",
+          "description": "Lenguas artificiales y construidas",
+          "questionCount": 15
+        },
+        {
+          "id": "etimologias_insolitas",
+          "name": "Etimologías Insólitas",
+          "icon": "fas fa-question-circle",
+          "description": "Orígenes sorprendentes de palabras",
+          "questionCount": 15
+        }
+      ]
+    }
+  ]
+} 

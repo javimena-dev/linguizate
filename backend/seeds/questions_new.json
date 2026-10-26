@@ -1,0 +1,792 @@
+{
+  "questions": {
+    "introduccion_linguistica": [
+      {
+        "id": "int_1",
+        "question": "¿Qué diferencia hay entre lengua y lenguaje?",
+        "options": [
+          "La lengua es solo verbal porque todos pueden comunicarse de esa forma",
+          "El lenguaje abarca todos los sistemas de comunicación, incluyendo el no verbal",
+          "Lengua y lenguaje son sinónimos en la comunicación",
+          "El lenguaje no incluye la lengua escrita"
+        ],
+        "correct": 1,
+        "difficulty": "facil",
+        "explanation": "El lenguaje es un sistema más amplio que incluye comunicación verbal y no verbal, mientras que la lengua se refiere específicamente a un sistema de comunicación verbal."
+      },
+      {
+        "id": "int_2",
+        "question": "¿Cuál es la unidad mínima de significado en una lengua?",
+        "options": [
+          "Morfema",
+          "Fonema",
+          "Palabra",
+          "Sintagma"
+        ],
+        "correct": 0,
+        "difficulty": "facil",
+        "explanation": "El morfema es la unidad mínima de significado en una lengua, puede ser una palabra completa o parte de una palabra."
+      },
+      {
+        "id": "int_3",
+        "question": "¿Qué autor introdujo el concepto de \"competencia lingüística\"?",
+        "options": [
+          "Ferdinand de Saussure",
+          "Noam Chomsky",
+          "Edward Sapir",
+          "Leonard Bloomfield"
+        ],
+        "correct": 1,
+        "difficulty": "medio",
+        "explanation": "Noam Chomsky introdujo el concepto de competencia lingüística como el conocimiento tácito que tienen los hablantes de su lengua."
+      },
+      {
+        "id": "int_4",
+        "question": "¿Qué concepto describe la capacidad de los hablantes para generar oraciones nunca antes escuchadas?",
+        "options": [
+          "Competencia lingüística",
+          "Gramática descriptiva",
+          "Fonología",
+          "Sintaxis"
+        ],
+        "correct": 0,
+        "difficulty": "medio",
+        "explanation": "La competencia lingüística incluye la capacidad creativa de generar oraciones nuevas e infinitas combinaciones."
+      },
+      {
+        "id": "int_5",
+        "question": "¿Cómo se define la \"pragmática\" en lingüística?",
+        "options": [
+          "El estudio de los significados de las palabras",
+          "El estudio del uso del lenguaje en contextos específicos",
+          "El análisis de las estructuras de las oraciones",
+          "El estudio de los sonidos"
+        ],
+        "correct": 1,
+        "difficulty": "facil",
+        "explanation": "La pragmática estudia cómo se usa el lenguaje en contextos específicos y cómo el contexto afecta el significado."
+      },
+      {
+        "id": "int_6",
+        "question": "¿Cuál es la principal diferencia entre la gramática generativa y la estructuralista?",
+        "options": [
+          "La gramática generativa se enfoca en las reglas universales, mientras que la estructuralista en la observación de lenguas particulares",
+          "La gramática generativa no estudia los sonidos",
+          "La gramática estructuralista enfatiza la competencia lingüística",
+          "No hay diferencia"
+        ],
+        "correct": 0,
+        "difficulty": "dificil",
+        "explanation": "La gramática generativa busca principios universales, mientras que la estructuralista se enfoca en describir estructuras particulares de cada lengua."
+      },
+      {
+        "id": "int_7",
+        "question": "¿Qué describe el modelo de Saussure sobre el signo lingüístico?",
+        "options": [
+          "El signo es solo el sonido de la palabra",
+          "El signo se compone de un significante (sonido) y un significado (concepto)",
+          "El signo solo tiene significado si es usado en un contexto",
+          "El signo solo es importante en el habla"
+        ],
+        "correct": 1,
+        "difficulty": "medio",
+        "explanation": "Saussure definió el signo lingüístico como la unión de un significante (imagen acústica) y un significado (concepto)."
+      },
+      {
+        "id": "int_8",
+        "question": "¿Qué término se refiere al estudio de los significados de las palabras y frases?",
+        "options": [
+          "Morfología",
+          "Sintaxis",
+          "Semántica",
+          "Fonología"
+        ],
+        "correct": 2,
+        "difficulty": "facil",
+        "explanation": "La semántica es la rama de la lingüística que estudia el significado de las palabras, frases y oraciones."
+      },
+      {
+        "id": "int_9",
+        "question": "¿Qué autor destacó por su teoría del \"relativismo lingüístico\"?",
+        "options": [
+          "Leonard Bloomfield",
+          "Edward Sapir",
+          "Roman Jakobson",
+          "Charles Sanders Peirce"
+        ],
+        "correct": 1,
+        "difficulty": "medio",
+        "explanation": "Edward Sapir, junto con Benjamin Lee Whorf, desarrolló la hipótesis del relativismo lingüístico."
+      },
+      {
+        "id": "int_10",
+        "question": "¿Cuál es la diferencia entre la lingüística sincrónica y diacrónica?",
+        "options": [
+          "La sincrónica estudia las lenguas a través del tiempo, mientras que la diacrónica estudia lenguas vivas",
+          "La sincrónica estudia una lengua en un momento dado, la diacrónica a lo largo de su historia",
+          "No hay diferencia, son sinónimos",
+          "La sincrónica se enfoca en la fonología, la diacrónica en la semántica"
+        ],
+        "correct": 1,
+        "difficulty": "medio",
+        "explanation": "La lingüística sincrónica estudia una lengua en un momento específico, mientras que la diacrónica estudia su evolución histórica."
+      },
+      {
+        "id": "int_11",
+        "question": "¿Qué tipo de gramática se ocupa del estudio de las lenguas tal y como son usadas?",
+        "options": [
+          "Gramática prescriptiva",
+          "Gramática descriptiva",
+          "Gramática generativa",
+          "Gramática universal"
+        ],
+        "correct": 1,
+        "difficulty": "facil",
+        "explanation": "La gramática descriptiva estudia cómo se usan realmente las lenguas, sin juzgar si es correcto o incorrecto."
+      },
+      {
+        "id": "int_12",
+        "question": "¿Qué rama de la lingüística estudia el sonido de las palabras?",
+        "options": [
+          "Sintaxis",
+          "Fonología",
+          "Semántica",
+          "Morfología"
+        ],
+        "correct": 1,
+        "difficulty": "facil",
+        "explanation": "La fonología estudia los sonidos de las lenguas y cómo se organizan en sistemas."
+      },
+      {
+        "id": "int_13",
+        "question": "¿Cómo define Chomsky la \"gramática universal\"?",
+        "options": [
+          "La capacidad de todos los humanos para aprender cualquier lengua",
+          "El conjunto de reglas que subyace a todas las lenguas del mundo",
+          "Un sistema de fonemas comunes a todas las lenguas",
+          "La relación entre la lengua y el pensamiento"
+        ],
+        "correct": 1,
+        "difficulty": "dificil",
+        "explanation": "La gramática universal es el conjunto de principios y reglas que subyacen a todas las lenguas humanas."
+      },
+      {
+        "id": "int_14",
+        "question": "¿Qué estudia la morfología en la lingüística?",
+        "options": [
+          "Los sonidos de las palabras",
+          "Las estructuras y componentes internos de las palabras",
+          "La sintaxis de las oraciones",
+          "Los significados y relaciones entre las palabras"
+        ],
+        "correct": 1,
+        "difficulty": "facil",
+        "explanation": "La morfología estudia la estructura interna de las palabras y cómo se forman a partir de morfemas."
+      },
+      {
+        "id": "int_15",
+        "question": "¿Qué fenómeno lingüístico se refiere a la adaptación de un idioma a su contexto social y cultural?",
+        "options": [
+          "Dialectología",
+          "Pragmática",
+          "Sociolingüística",
+          "Semántica"
+        ],
+        "correct": 2,
+        "difficulty": "medio",
+        "explanation": "La sociolingüística estudia la relación entre la lengua y la sociedad, incluyendo cómo se adapta a contextos sociales y culturales."
+      }
+    ],
+    "filosofia_lenguaje": [
+      {
+        "id": "fil_1",
+        "question": "¿Quién es considerado uno de los principales filósofos que estudió la relación entre lenguaje y realidad en su obra \"Tractatus Logico-Philosophicus\"?",
+        "options": [
+          "Immanuel Kant",
+          "Ludwig Wittgenstein",
+          "Noam Chomsky",
+          "Michel Foucault"
+        ],
+        "correct": 1,
+        "difficulty": "medio",
+        "explanation": "Ludwig Wittgenstein escribió el \"Tractatus Logico-Philosophicus\" donde analiza la relación entre lenguaje y realidad."
+      },
+      {
+        "id": "fil_2",
+        "question": "Según Wittgenstein, ¿qué función tiene el lenguaje en la construcción de la realidad?",
+        "options": [
+          "El lenguaje refleja el mundo",
+          "El lenguaje crea el mundo y la forma en que percibimos la realidad",
+          "El lenguaje solo es un medio de comunicación",
+          "El lenguaje no influye en la percepción de la realidad"
+        ],
+        "correct": 1,
+        "difficulty": "dificil",
+        "explanation": "En su obra posterior, Wittgenstein sostuvo que el lenguaje no solo refleja la realidad, sino que la construye y moldea nuestra percepción."
+      },
+      {
+        "id": "fil_3",
+        "question": "¿Qué filósofo propuso la teoría de que el lenguaje es un juego de signos y reglas sociales?",
+        "options": [
+          "Ferdinand de Saussure",
+          "Ludwig Wittgenstein",
+          "Karl Marx",
+          "John Locke"
+        ],
+        "correct": 1,
+        "difficulty": "medio",
+        "explanation": "Wittgenstein desarrolló la teoría de los \"juegos de lenguaje\" donde el significado surge del uso social."
+      },
+      {
+        "id": "fil_4",
+        "question": "¿Qué postura filosófica sostiene que el lenguaje es una construcción social que depende de la cultura y el contexto histórico?",
+        "options": [
+          "Idealismo",
+          "Estructuralismo",
+          "Pragmatismo",
+          "Realismo"
+        ],
+        "correct": 2,
+        "difficulty": "dificil",
+        "explanation": "El pragmatismo sostiene que el lenguaje es una construcción social que depende del contexto cultural e histórico."
+      },
+      {
+        "id": "fil_5",
+        "question": "¿Qué autor afirmó que el lenguaje es un sistema de símbolos que sólo adquiere sentido dentro de un contexto social?",
+        "options": [
+          "Charles Peirce",
+          "Michel Foucault",
+          "Ludwig Wittgenstein",
+          "Ferdinand de Saussure"
+        ],
+        "correct": 2,
+        "difficulty": "medio",
+        "explanation": "Wittgenstein enfatizó que el lenguaje solo adquiere significado en contextos sociales específicos."
+      },
+      {
+        "id": "fil_6",
+        "question": "¿Qué concepto filosófico defiende que las palabras solo tienen significado si se aplican a un contexto específico?",
+        "options": [
+          "Relativismo lingüístico",
+          "Pragmática del lenguaje",
+          "Estructuralismo",
+          "Empirismo lingüístico"
+        ],
+        "correct": 1,
+        "difficulty": "medio",
+        "explanation": "La pragmática del lenguaje sostiene que el significado de las palabras depende del contexto de uso."
+      },
+      {
+        "id": "fil_7",
+        "question": "¿Qué corriente filosófica se opone a la visión de que el lenguaje es un reflejo exacto de la realidad?",
+        "options": [
+          "Idealismo",
+          "Pragmatismo",
+          "Realismo",
+          "Empirismo"
+        ],
+        "correct": 1,
+        "difficulty": "dificil",
+        "explanation": "El pragmatismo se opone a la idea de que el lenguaje refleja exactamente la realidad, enfatizando su carácter constructivo."
+      },
+      {
+        "id": "fil_8",
+        "question": "¿Qué autor es conocido por su teoría de que el lenguaje forma parte de la estructura de pensamiento y no solo de la comunicación?",
+        "options": [
+          "Edward Sapir",
+          "Ferdinand de Saussure",
+          "Benjamin Lee Whorf",
+          "Noam Chomsky"
+        ],
+        "correct": 2,
+        "difficulty": "medio",
+        "explanation": "Benjamin Lee Whorf desarrolló la hipótesis de que el lenguaje estructura el pensamiento y la percepción de la realidad."
+      },
+      {
+        "id": "fil_9",
+        "question": "¿Qué idea central sustenta la teoría del \"relativismo lingüístico\"?",
+        "options": [
+          "El lenguaje refleja la realidad objetiva",
+          "El lenguaje es un constructo social que moldea la percepción de la realidad",
+          "El lenguaje no tiene influencia en el pensamiento",
+          "Las lenguas son universales y no afectan la cognición"
+        ],
+        "correct": 1,
+        "difficulty": "dificil",
+        "explanation": "El relativismo lingüístico sostiene que el lenguaje construye y moldea nuestra percepción de la realidad."
+      },
+      {
+        "id": "fil_10",
+        "question": "¿Qué filósofo es conocido por su análisis sobre la relación entre los significados de las palabras y las acciones humanas?",
+        "options": [
+          "John Searle",
+          "Michel Foucault",
+          "Ludwig Wittgenstein",
+          "Hegel"
+        ],
+        "correct": 2,
+        "difficulty": "medio",
+        "explanation": "Wittgenstein analizó profundamente la relación entre el significado de las palabras y las acciones humanas."
+      },
+      {
+        "id": "fil_11",
+        "question": "Según el funcionalismo, ¿qué es lo que el lenguaje refleja principalmente?",
+        "options": [
+          "La cultura humana",
+          "Las estructuras subyacentes del pensamiento",
+          "La realidad física",
+          "La interacción social"
+        ],
+        "correct": 1,
+        "difficulty": "dificil",
+        "explanation": "El funcionalismo sostiene que el lenguaje refleja las estructuras subyacentes del pensamiento humano."
+      },
+      {
+        "id": "fil_12",
+        "question": "¿Qué es el \"lenguaje ideal\" según la filosofía del lenguaje?",
+        "options": [
+          "Un sistema puramente lógico",
+          "Un sistema emocional",
+          "Un sistema relacionado con el arte",
+          "Un lenguaje universal"
+        ],
+        "correct": 0,
+        "difficulty": "dificil",
+        "explanation": "El \"lenguaje ideal\" en filosofía se refiere a un sistema de comunicación puramente lógico y preciso."
+      },
+      {
+        "id": "fil_13",
+        "question": "¿Qué filósofo del lenguaje afirmó que las palabras son \"instrumentos\" que solo tienen valor cuando son utilizadas socialmente?",
+        "options": [
+          "John Searle",
+          "Ludwig Wittgenstein",
+          "Ferdinand de Saussure",
+          "Charles Peirce"
+        ],
+        "correct": 1,
+        "difficulty": "medio",
+        "explanation": "Wittgenstein comparó las palabras con instrumentos que solo tienen valor y significado cuando se usan en contextos sociales."
+      },
+      {
+        "id": "fil_14",
+        "question": "¿Qué corriente filosófica aborda el lenguaje como un medio de comunicación intersubjetivo y basado en la acción?",
+        "options": [
+          "Hermenéutica",
+          "Pragmatismo",
+          "Realismo",
+          "Idealismo"
+        ],
+        "correct": 1,
+        "difficulty": "dificil",
+        "explanation": "El pragmatismo aborda el lenguaje como comunicación intersubjetiva basada en la acción y el contexto."
+      },
+      {
+        "id": "fil_15",
+        "question": "¿Qué filósofo fue pionero en la teoría del significado como \"uso del lenguaje\" en su obra \"Investigaciones Filosóficas\"?",
+        "options": [
+          "Ludwig Wittgenstein",
+          "Martin Heidegger",
+          "John Locke",
+          "Immanuel Kant"
+        ],
+        "correct": 0,
+        "difficulty": "medio",
+        "explanation": "En \"Investigaciones Filosóficas\", Wittgenstein desarrolló la teoría de que el significado es el uso del lenguaje."
+      }
+    ],
+    "tipologia_linguistica": [
+      {
+        "id": "tip_1",
+        "question": "¿Qué característica distingue a las lenguas sintéticas?",
+        "options": [
+          "Tienen una estructura fija de palabras",
+          "Usan morfemas para expresar relaciones gramaticales",
+          "No tienen flexión verbal",
+          "Carecen de artículos definidos"
+        ],
+        "correct": 1,
+        "difficulty": "medio",
+        "explanation": "Las lenguas sintéticas usan morfemas (afijos) para expresar relaciones gramaticales y significados."
+      },
+      {
+        "id": "tip_2",
+        "question": "¿Qué es una lengua aglutinante?",
+        "options": [
+          "Una lengua que fusiona varias palabras en una sola",
+          "Una lengua en la que los morfemas se añaden de forma secuencial y no se alteran",
+          "Una lengua sin flexión",
+          "Una lengua con una gramática rígida"
+        ],
+        "correct": 1,
+        "difficulty": "medio",
+        "explanation": "En las lenguas aglutinantes, los morfemas se añaden secuencialmente sin alterar su forma."
+      },
+      {
+        "id": "tip_3",
+        "question": "¿Cómo se clasifica una lengua que tiene un solo verbo para todas las personas gramaticales?",
+        "options": [
+          "Lengua analítica",
+          "Lengua polisintética",
+          "Lengua flexiva",
+          "Lengua aglutinante"
+        ],
+        "correct": 0,
+        "difficulty": "medio",
+        "explanation": "Las lenguas analíticas tienen poca flexión y usan palabras separadas para expresar relaciones gramaticales."
+      },
+      {
+        "id": "tip_4",
+        "question": "¿Qué característica define a las lenguas analíticas?",
+        "options": [
+          "Uso extensivo de morfemas",
+          "El orden de las palabras es fundamental para el significado",
+          "Uso de sufijos para expresar significados",
+          "La falta de palabras auxiliares"
+        ],
+        "correct": 1,
+        "difficulty": "medio",
+        "explanation": "En las lenguas analíticas, el orden de las palabras es crucial para determinar el significado."
+      },
+      {
+        "id": "tip_5",
+        "question": "¿Qué tipo de lengua es el chino, en términos de tipología?",
+        "options": [
+          "Aislante",
+          "Flexiva",
+          "Aglutinante",
+          "Sintética"
+        ],
+        "correct": 0,
+        "difficulty": "facil",
+        "explanation": "El chino es una lengua aislante, con poca flexión y donde las palabras tienden a ser monomorfémicas."
+      },
+      {
+        "id": "tip_6",
+        "question": "¿Qué es una lengua polisintética?",
+        "options": [
+          "Una lengua que combina varios morfemas en una sola palabra para expresar significados complejos",
+          "Una lengua que utiliza muchos afijos",
+          "Una lengua que tiene pocas conjugaciones verbales",
+          "Una lengua con muy pocos fonemas"
+        ],
+        "correct": 0,
+        "difficulty": "dificil",
+        "explanation": "Las lenguas polisintéticas forman palabras muy largas que expresan significados complejos equivalentes a oraciones enteras."
+      },
+      {
+        "id": "tip_7",
+        "question": "¿Qué característica define a las lenguas fusionales?",
+        "options": [
+          "La flexión verbal no cambia",
+          "Los morfemas se combinan para representar varias categorías gramaticales",
+          "No utilizan afijos",
+          "Usan una estructura de palabra fija"
+        ],
+        "correct": 1,
+        "difficulty": "medio",
+        "explanation": "En las lenguas fusionales, un solo morfema puede expresar múltiples categorías gramaticales simultáneamente."
+      },
+      {
+        "id": "tip_8",
+        "question": "¿Cuál es la principal diferencia entre lenguas analíticas y sintéticas?",
+        "options": [
+          "Las analíticas no utilizan morfemas",
+          "Las analíticas se enfocan en el uso del orden de palabras para expresar significados",
+          "Las sintéticas tienen una estructura fija de frases",
+          "No hay diferencia"
+        ],
+        "correct": 1,
+        "difficulty": "medio",
+        "explanation": "Las lenguas analíticas dependen del orden de palabras, mientras que las sintéticas usan morfemas para expresar relaciones."
+      },
+      {
+        "id": "tip_9",
+        "question": "¿Qué lengua se caracteriza por la \"ergatividad\", un tipo de sintaxis en la que el sujeto de un verbo transitivo se trata de manera diferente al sujeto de un verbo intransitivo?",
+        "options": [
+          "Inglés",
+          "Guaraní",
+          "Español",
+          "Francés"
+        ],
+        "correct": 1,
+        "difficulty": "dificil",
+        "explanation": "El guaraní es una lengua ergativa donde el sujeto de verbos transitivos se marca diferente al de verbos intransitivos."
+      },
+      {
+        "id": "tip_10",
+        "question": "¿Qué tipo de lenguas se caracterizan por tener muy pocos cambios gramaticales?",
+        "options": [
+          "Lenguas analíticas",
+          "Lenguas sintéticas",
+          "Lenguas fusionales",
+          "Lenguas flexivas"
+        ],
+        "correct": 0,
+        "difficulty": "facil",
+        "explanation": "Las lenguas analíticas tienen muy pocos cambios gramaticales y dependen del orden de palabras."
+      },
+      {
+        "id": "tip_11",
+        "question": "¿Qué se entiende por una lengua ergativa?",
+        "options": [
+          "Una lengua que usa el orden SVO",
+          "Una lengua que no tiene verbos transitivos",
+          "Una lengua que marca de forma distinta al sujeto de una oración transitiva y al de una intransitiva",
+          "Una lengua que usa infijos en lugar de prefijos"
+        ],
+        "correct": 2,
+        "difficulty": "dificil",
+        "explanation": "Una lengua ergativa trata diferente al sujeto de verbos transitivos (ergativo) y al de verbos intransitivos (absolutivo)."
+      },
+      {
+        "id": "tip_12",
+        "question": "¿Cómo se clasificaría el latín en términos de tipología lingüística?",
+        "options": [
+          "Aislante",
+          "Flexiva",
+          "Analítica",
+          "Sintética"
+        ],
+        "correct": 1,
+        "difficulty": "medio",
+        "explanation": "El latín es una lengua flexiva, donde los morfemas expresan múltiples categorías gramaticales."
+      },
+      {
+        "id": "tip_13",
+        "question": "¿Qué tipo de lengua tiene una morfología rica que permite expresar muchas funciones gramaticales mediante afijos?",
+        "options": [
+          "Aislante",
+          "Analítica",
+          "Sintética",
+          "Fusional"
+        ],
+        "correct": 2,
+        "difficulty": "medio",
+        "explanation": "Las lenguas sintéticas tienen morfología rica con muchos afijos para expresar funciones gramaticales."
+      },
+      {
+        "id": "tip_14",
+        "question": "¿En qué consiste el \"principio de economía\" en las lenguas analíticas?",
+        "options": [
+          "Reducir al máximo el uso de morfemas",
+          "Usar solo los morfemas necesarios para que el contexto sea comprensible",
+          "Emplear más verbos",
+          "Utilizar formas verbales fijas"
+        ],
+        "correct": 1,
+        "difficulty": "dificil",
+        "explanation": "El principio de economía en lenguas analíticas consiste en usar solo los morfemas necesarios para la comprensión contextual."
+      },
+      {
+        "id": "tip_15",
+        "question": "¿Qué característica es común en las lenguas analíticas y las aislantes?",
+        "options": [
+          "Poca flexión gramatical",
+          "Uso extensivo de afijos",
+          "Verbos intransitivos",
+          "Lenguas con una gramática rígida"
+        ],
+        "correct": 0,
+        "difficulty": "medio",
+        "explanation": "Tanto las lenguas analíticas como las aislantes se caracterizan por tener poca flexión gramatical."
+      }
+    ],
+    "gramatica_universal": [
+      {
+        "id": "gram_1",
+        "question": "¿Qué concepto sostiene la teoría de la gramática universal de Chomsky?",
+        "options": [
+          "Que todos los lenguajes son iguales",
+          "Que los niños aprenden el lenguaje mediante imitación",
+          "Que existe una estructura común subyacente en todas las lenguas",
+          "Que el lenguaje es adquirido por la exposición social"
+        ],
+        "correct": 2,
+        "difficulty": "medio",
+        "explanation": "La gramática universal sostiene que existe una estructura común subyacente en todas las lenguas humanas."
+      },
+      {
+        "id": "gram_2",
+        "question": "Según Chomsky, ¿qué es la \"competencia lingüística\"?",
+        "options": [
+          "El conocimiento tácito de una lengua",
+          "El uso de una lengua en el contexto social",
+          "El estudio de la fonología",
+          "La habilidad de aprender lenguas extranjeras"
+        ],
+        "correct": 0,
+        "difficulty": "medio",
+        "explanation": "La competencia lingüística es el conocimiento tácito e innato que tienen los hablantes de su lengua."
+      },
+      {
+        "id": "gram_3",
+        "question": "¿Cómo se denomina el conjunto de reglas de una lengua según la teoría generativa?",
+        "options": [
+          "Gramática descriptiva",
+          "Gramática generativa",
+          "Gramática universal",
+          "Gramática lógica"
+        ],
+        "correct": 1,
+        "difficulty": "medio",
+        "explanation": "La gramática generativa es el conjunto de reglas que permite generar todas las oraciones posibles de una lengua."
+      },
+      {
+        "id": "gram_4",
+        "question": "Según la gramática universal, ¿qué comparten todas las lenguas humanas?",
+        "options": [
+          "Las mismas palabras",
+          "Las mismas reglas fonológicas",
+          "Un conjunto de estructuras subyacentes comunes",
+          "El mismo sistema de signos"
+        ],
+        "correct": 2,
+        "difficulty": "medio",
+        "explanation": "Todas las lenguas humanas comparten un conjunto de estructuras subyacentes comunes según la gramática universal."
+      },
+      {
+        "id": "gram_5",
+        "question": "¿Qué concepto se refiere a las reglas y principios universales que guían la estructura de las lenguas humanas?",
+        "options": [
+          "Gramática generativa",
+          "Gramática universal",
+          "Competencia lingüística",
+          "Lengua ancestral"
+        ],
+        "correct": 1,
+        "difficulty": "medio",
+        "explanation": "La gramática universal son los principios y reglas universales que subyacen a todas las lenguas humanas."
+      },
+      {
+        "id": "gram_6",
+        "question": "Según Chomsky, ¿cuál es la relación entre \"competencia\" y \"actuación\"?",
+        "options": [
+          "La actuación es la manifestación de la competencia",
+          "La actuación es la competencia interna",
+          "La competencia no tiene relación con la actuación",
+          "La competencia es innata, mientras que la actuación es aprendida"
+        ],
+        "correct": 0,
+        "difficulty": "medio",
+        "explanation": "La actuación es la manifestación externa de la competencia lingüística interna del hablante."
+      },
+      {
+        "id": "gram_7",
+        "question": "¿Qué fenómeno ocurre cuando los niños adquieren una lengua sin intervención explícita?",
+        "options": [
+          "Imitación",
+          "Adquisición lingüística",
+          "Estudio formal",
+          "Memorización"
+        ],
+        "correct": 1,
+        "difficulty": "facil",
+        "explanation": "La adquisición lingüística es el proceso natural por el cual los niños aprenden su lengua materna."
+      },
+      {
+        "id": "gram_8",
+        "question": "¿Qué autor desarrolló la idea de que la gramática está profundamente relacionada con el pensamiento humano?",
+        "options": [
+          "Noam Chomsky",
+          "Charles Peirce",
+          "Ferdinand de Saussure",
+          "Michel Foucault"
+        ],
+        "correct": 0,
+        "difficulty": "medio",
+        "explanation": "Chomsky desarrolló la idea de que la gramática está profundamente relacionada con la estructura del pensamiento humano."
+      },
+      {
+        "id": "gram_9",
+        "question": "¿Qué teoría sostiene que todas las lenguas tienen una estructura común y un conjunto de principios innatos?",
+        "options": [
+          "Teoría estructuralista",
+          "Teoría generativa",
+          "Teoría funcionalista",
+          "Teoría del aprendizaje"
+        ],
+        "correct": 1,
+        "difficulty": "medio",
+        "explanation": "La teoría generativa sostiene que todas las lenguas comparten una estructura común con principios innatos."
+      },
+      {
+        "id": "gram_10",
+        "question": "¿Qué área de la lingüística se ocupa de las estructuras profundas y superficiales del lenguaje?",
+        "options": [
+          "Gramática generativa",
+          "Fonología",
+          "Sintaxis",
+          "Semántica"
+        ],
+        "correct": 0,
+        "difficulty": "medio",
+        "explanation": "La gramática generativa distingue entre estructuras profundas (subyacentes) y superficiales (observables)."
+      },
+      {
+        "id": "gram_11",
+        "question": "¿Qué autor defendió la idea de que las lenguas tienen una estructura universal que se manifiesta en sus reglas gramaticales?",
+        "options": [
+          "Leonard Bloomfield",
+          "Noam Chomsky",
+          "Ferdinand de Saussure",
+          "John Searle"
+        ],
+        "correct": 1,
+        "difficulty": "medio",
+        "explanation": "Chomsky defendió que todas las lenguas tienen una estructura universal que se manifiesta en sus reglas gramaticales."
+      },
+      {
+        "id": "gram_12",
+        "question": "¿Qué es el \"traslado\" en el marco de la gramática generativa?",
+        "options": [
+          "El proceso de aprendizaje de una lengua",
+          "El movimiento de elementos en una oración para formar otras oraciones",
+          "El cambio de estructuras fonológicas",
+          "El estudio de la variación de lenguas"
+        ],
+        "correct": 1,
+        "difficulty": "dificil",
+        "explanation": "El traslado (transformación) es el movimiento de elementos en una oración para generar otras estructuras oracionales."
+      },
+      {
+        "id": "gram_13",
+        "question": "¿Cómo define Chomsky el lenguaje humano en su teoría?",
+        "options": [
+          "Como un conjunto de estructuras que se aprenden socialmente",
+          "Como un fenómeno puramente biológico",
+          "Como un producto cultural",
+          "Como una habilidad adquirida exclusivamente por exposición"
+        ],
+        "correct": 1,
+        "difficulty": "medio",
+        "explanation": "Chomsky define el lenguaje humano como un fenómeno fundamentalmente biológico e innato."
+      },
+      {
+        "id": "gram_14",
+        "question": "Según la teoría de la gramática universal, ¿qué determina la capacidad de los humanos para aprender una lengua?",
+        "options": [
+          "El contexto social y la imitación",
+          "La estructura innata del cerebro humano",
+          "La exposición a una lengua",
+          "La interacción con otros hablantes"
+        ],
+        "correct": 1,
+        "difficulty": "medio",
+        "explanation": "La gramática universal sostiene que la capacidad lingüística está determinada por la estructura innata del cerebro humano."
+      },
+      {
+        "id": "gram_15",
+        "question": "¿Qué autor criticó la visión de Chomsky sobre la gramática universal y defendió el papel del contexto social?",
+        "options": [
+          "Noam Chomsky",
+          "Edward Sapir",
+          "Benjamin Lee Whorf",
+          "Jean Piaget"
+        ],
+        "correct": 2,
+        "difficulty": "medio",
+        "explanation": "Benjamin Lee Whorf criticó aspectos de la gramática universal y enfatizó el papel del contexto social y cultural."
+      }
+    ]
+  }
+}
