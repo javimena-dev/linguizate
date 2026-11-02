@@ -118,10 +118,24 @@ function initDb() {
       imported_at TEXT NOT NULL DEFAULT (datetime('now')),
       summary TEXT NOT NULL
     );
+    CREATE TABLE IF NOT EXISTS chat_usage (
+      user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      usage_day TEXT NOT NULL,
+      request_count INTEGER NOT NULL DEFAULT 0,
+      updated_at TEXT NOT NULL DEFAULT (datetime('now')),
+      PRIMARY KEY(user_id, usage_day)
+    );
     CREATE INDEX IF NOT EXISTS idx_questions_subcategory ON questions(subcategory_id);
     CREATE INDEX IF NOT EXISTS idx_games_user ON games(user_id, played_at DESC);
     CREATE INDEX IF NOT EXISTS idx_categories_owner ON categories(owner_user_id);
+    CREATE INDEX IF NOT EXISTS idx_chat_usage_day ON chat_usage(usage_day);
   `);
+
+  // Migración segura para bases existentes. La racha ya no se infiere de aciertos.
+  const gameColumns = db.prepare('PRAGMA table_info(games)').all().map((column) => column.name);
+  if (!gameColumns.includes('best_streak')) {
+    db.exec('ALTER TABLE games ADD COLUMN best_streak INTEGER NOT NULL DEFAULT 0');
+  }
 
   seedUsers();
   seedCatalog();

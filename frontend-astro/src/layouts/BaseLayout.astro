@@ -1,0 +1,96 @@
+---
+import { ClientRouter } from 'astro:transitions';
+import DynamicBackground from '../components/common/DynamicBackground.astro';
+import '../styles/global.css';
+
+interface Props {
+  title?: string;
+  description?: string;
+}
+
+const {
+  title = 'Lingüízate - Trivia Lingüística',
+  description = 'Desafía tu conocimiento lingüístico con preguntas de opción múltiple, explicaciones detalladas y chat contextual con IA.'
+} = Astro.props;
+---
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <link rel="icon" type="image/x-icon" href="/favicon.ico" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+    />
+    <ClientRouter />
+  </head>
+  <body>
+    <!-- Reproductor de música persistente que NO se interrumpe al navegar -->
+    <div id="persistent-audio-player" transition:persist>
+      <audio id="ambient-audio" loop src="/assets/music/ambient-loop.mp3" preload="auto"></audio>
+    </div>
+
+    <!-- Fondo dinámico con partículas y símbolos lingüísticos persistente -->
+    <div transition:persist>
+      <DynamicBackground />
+    </div>
+
+    <slot />
+
+    <section id="feedback-toasts" class="app-toasts" aria-live="polite" aria-relevant="additions"></section>
+    <dialog id="feedback-confirm" class="feedback-dialog" aria-labelledby="feedback-confirm-title">
+      <section class="feedback-dialog__card">
+        <h2 id="feedback-confirm-title" data-confirm-title>Confirmar acción</h2>
+        <p data-confirm-message></p>
+        <div class="feedback-dialog__actions">
+          <button type="button" class="btn-secondary" data-confirm-cancel>Cancelar</button>
+          <button type="button" class="btn-primary" data-confirm-accept>Confirmar</button>
+        </div>
+      </section>
+    </dialog>
+
+    <script>
+      import { initAmbientMusic } from '../scripts/audio';
+      import { fetchCurrentSession, $currentUser, clearSession } from '../scripts/store';
+
+      let initialized = false;
+
+      function onInit() {
+        if (!initialized) {
+          initialized = true;
+          initAmbientMusic();
+        }
+        // Siempre verificar sesión en cada carga de página
+        void fetchCurrentSession();
+      }
+
+      // Interceptar respuestas 401 globalmente
+      // Monkey-patch fetch para detectar 401 sin interferir con el flujo normal
+      const originalFetch = window.fetch;
+      window.fetch = async function(...args) {
+        const response = await originalFetch.apply(this, args);
+        if (response.status === 401) {
+          // Solo actuar si había un usuario autenticado (evitar bucle en /auth/session)
+          const url = typeof args[0] === 'string' ? args[0] : (args[0] as Request).url;
+          const isSessionCheck = url.includes('/auth/session');
+          if (!isSessionCheck && $currentUser.get()) {
+            clearSession();
+            const next = encodeURIComponent(window.location.pathname);
+            window.location.href = `/login?next=${next}`;
+          }
+        }
+        return response;
+      };
+
+      onInit();
+      document.addEventListener('astro:page-load', onInit);
+    </script>
+  </body>
+</html>

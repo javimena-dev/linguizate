@@ -1,0 +1,36 @@
+---
+import AppLayout from '../layouts/AppLayout.astro';
+---
+
+<AppLayout title="Verifica tu correo - Lingüízate">
+  <section class="container container-auth-tight login-screen-layout">
+    <div class="auth-form auth-card auth-form-compact">
+      <h1 class="auth-title-compact"><i class="fas fa-envelope-circle-check"></i> Verifica tu correo</h1>
+      <p>Enviamos un enlace de verificación a <strong id="email">tu correo</strong>.</p>
+      <p>Abre el enlace para activar el tutor de lingüística.</p>
+      <p id="message" class="auth-notification" hidden aria-live="polite"></p>
+      <button id="resend" class="btn-primary btn-auth-submit" type="button">Reenviar correo</button>
+      <a class="btn-link btn-link-compact" href="/login" id="logout">Cerrar sesión</a>
+    </div>
+  </section>
+</AppLayout>
+
+<script>
+  import { navigate } from 'astro:transitions/client';
+  import { api } from '../scripts/api';
+  import { fetchCurrentSession, logoutUser } from '../scripts/store';
+  const email = document.querySelector<HTMLElement>('#email')!;
+  const message = document.querySelector<HTMLElement>('#message')!;
+  const resend = document.querySelector<HTMLButtonElement>('#resend')!;
+  function notice(text: string, error = false) { message.hidden = false; message.textContent = text; message.style.color = error ? '#c53030' : '#197149'; }
+  fetchCurrentSession().then(async (user) => {
+    if (!user) return navigate('/login');
+    if (user.emailVerified) return navigate('/chat');
+    email.textContent = user.email;
+  });
+  resend.addEventListener('click', async () => {
+    resend.disabled = true;
+    try { const result = await api.post('/auth/email/resend'); notice(result.message); } catch (error: any) { notice(error?.message || 'No se pudo reenviar el correo.', true); } finally { resend.disabled = false; }
+  });
+  document.querySelector('#logout')!.addEventListener('click', async (event) => { event.preventDefault(); await logoutUser(); await navigate('/login'); });
+</script>

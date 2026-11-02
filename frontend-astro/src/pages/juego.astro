@@ -1,0 +1,620 @@
+---
+import AppLayout from '../layouts/AppLayout.astro';
+---
+<AppLayout title="Trivia en Vivo - Lingüízate" showBack backUrl="/categorias">
+  <div class="container game-container" id="game-container">
+    <div class="game-main">
+      <header class="game-header-immersive">
+        <div class="game-header-left">
+          <div class="game-progress-row">
+            <div class="game-dual-progress" id="game-dual-progress">
+              <div class="game-advance-line">
+                <div class="game-advance-labels">
+                  <span class="game-advance-title">Avance</span>
+                  <span id="game-progress-fraction" class="game-progress-fraction">1 / 15</span>
+                </div>
+                <div class="progress-bar progress-bar-header game-progress-track">
+                  <div class="progress game-progress-fill" id="progress-bar-advance" style="width: 0%;"></div>
+                </div>
+              </div>
+            </div>
+            <div class="game-header-text">
+              <span id="current-category" class="game-category-name">Categoría</span>
+              <span id="question-number" class="game-question-counter">Pregunta 1 de 15</span>
+              <span id="game-mode-badge" class="game-mode-badge clasico">Modo clásico</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="game-header-right">
+          <div class="game-header-stat" id="timer-stat-wrap">
+            <div class="game-header-icon timer-icon">
+              <i class="fas fa-clock"></i>
+            </div>
+            <div class="game-header-values">
+              <span class="label">Tiempo</span>
+              <span id="timer" class="value">30</span>
+            </div>
+          </div>
+
+          <div class="game-header-stat">
+            <div class="game-header-icon">
+              <i class="fas fa-star"></i>
+            </div>
+            <div class="game-header-values">
+              <span class="label">Puntaje</span>
+              <span id="current-score" class="value">0</span>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <!-- Tarjeta de pregunta y opciones -->
+      <div class="question-container question-card">
+        <div class="question" id="question-text">
+          Cargando pregunta...
+        </div>
+
+        <div class="options" id="options-container">
+          <!-- Opciones barajadas dinámicamente -->
+        </div>
+
+        <!-- Sección de explicación y botones post-respuesta -->
+        <div id="explanation-wrap" class="explanation-content" style="display: none; margin-top: 24px; padding: 20px; border-radius: var(--border-radius); border: 1px solid var(--border-color);">
+          <div id="feedback-header" style="display: flex; align-items: center; gap: 10px; margin-bottom: 12px; font-weight: 700; font-size: 1.1rem;">
+            <i id="feedback-icon" class="fas fa-check-circle" style="color: var(--success-color);"></i>
+            <span id="feedback-text">¡Respuesta correcta!</span>
+          </div>
+          <p id="explanation-text" class="text-secondary" style="line-height: 1.6; margin-bottom: 20px;"></p>
+          <div style="display: flex; flex-wrap: wrap; gap: 12px; justify-content: space-between; align-items: center;">
+            <button type="button" id="btn-open-ai-chat" class="btn-secondary">
+              <i class="fas fa-robot"></i> Preguntar a la IA
+            </button>
+            <button type="button" id="btn-next-question" class="btn-primary">
+              Siguiente Pregunta <i class="fas fa-arrow-right"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Barra lateral con ranking y racha -->
+    <aside class="game-sidebar">
+      <div class="sidebar-user-highlight">
+        <div class="sidebar-user-details">
+          <span id="game-sidebar-name" class="sidebar-user-name">Tú</span>
+          <span id="game-streak-badge" class="sidebar-user-rank" style="color: var(--accent-color);">
+            <i class="fas fa-fire"></i> Racha: 0
+          </span>
+        </div>
+      </div>
+      <h3 class="sidebar-title">Dificultad de la pregunta</h3>
+      <div id="question-difficulty-badge" style="display: inline-block; padding: 6px 14px; border-radius: 20px; font-weight: 600; text-transform: uppercase; font-size: 0.8rem; background: rgba(99, 102, 241, 0.15); color: var(--primary-color);">
+        Fácil
+      </div>
+    </aside>
+  </div>
+
+  <div id="answer-feedback" class="feedback-overlay" role="status" aria-live="assertive" aria-atomic="true">
+    <i class="feedback-icon fas" aria-hidden="true"></i>
+    <span class="feedback-text"></span>
+  </div>
+  <div id="answer-flash" class="flash-screen" aria-hidden="true"></div>
+
+  <!-- Modal de Chat con IA -->
+  <div id="ai-chat-overlay" class="modal-overlay" style="display: none;" role="dialog" aria-modal="true" aria-labelledby="ai-chat-title">
+    <div class="modal ai-tutor-modal">
+      <div class="modal-header ai-tutor-header">
+        <div class="ai-tutor-header-copy">
+          <h3 id="ai-chat-title"><i class="fas fa-robot"></i> Tutor de Lingüística IA</h3>
+          <div class="ai-tutor-meta">
+            <small id="ai-chat-hint">Enter envía · Mayús + Enter crea otra línea</small>
+            <small id="ai-chat-usage" aria-live="polite"></small>
+          </div>
+        </div>
+        <button type="button" class="modal-close" id="btn-close-ai-chat" aria-label="Cerrar chat">&times;</button>
+      </div>
+      <div class="modal-body ai-tutor-messages" id="ai-chat-messages" aria-live="polite">
+        <!-- Mensajes del chat -->
+      </div>
+      <div class="ai-tutor-composer">
+        <div class="ai-tutor-input-wrap">
+          <textarea id="ai-chat-input" rows="1" maxlength="2000" placeholder="Pregunta sobre idiomas, gramática o esta pregunta..."></textarea>
+        </div>
+        <button type="button" id="btn-send-ai-chat" class="btn-primary" aria-label="Enviar pregunta">
+          <i class="fas fa-paper-plane"></i>
+        </button>
+      </div>
+    </div>
+  </div>
+</AppLayout>
+
+<script>
+  import { navigate } from 'astro:transitions/client';
+  import { $activeGame, $currentUser } from '../scripts/store';
+  import { api } from '../scripts/api';
+  import { playSFX } from '../scripts/audio';
+
+  function renderSafeMarkdown(source: string): string {
+    const escapeHtml = (value: string) => value
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#039;');
+    const inline = (value: string) => escapeHtml(value)
+      .replace(/`([^`\n]+)`/g, '<code>$1</code>')
+      .replace(/\*\*([^*\n]+)\*\*/g, '<strong>$1</strong>')
+      .replace(/_([^_\n]+)_/g, '<em>$1</em>');
+
+    const html: string[] = [];
+    let list: 'ul' | 'ol' | null = null;
+    const closeList = () => {
+      if (list) html.push(`</${list}>`);
+      list = null;
+    };
+
+    for (const rawLine of source.replace(/\r/g, '').split('\n')) {
+      const line = rawLine.trim();
+      if (!line) {
+        closeList();
+        continue;
+      }
+      const unordered = line.match(/^[-*]\s+(.+)/);
+      const ordered = line.match(/^\d+[.)]\s+(.+)/);
+      if (unordered || ordered) {
+        const nextList = unordered ? 'ul' : 'ol';
+        if (list !== nextList) {
+          closeList();
+          list = nextList;
+          html.push(`<${list}>`);
+        }
+        html.push(`<li>${inline((unordered || ordered)![1])}</li>`);
+        continue;
+      }
+      closeList();
+      const heading = line.match(/^(#{1,3})\s+(.+)/);
+      if (heading) {
+        const level = heading[1].length + 2;
+        html.push(`<h${level}>${inline(heading[2])}</h${level}>`);
+      } else {
+        html.push(`<p>${inline(line)}</p>`);
+      }
+    }
+    closeList();
+    return html.join('');
+  }
+
+  function setupGame() {
+    const gameContainer = document.getElementById('game-container');
+    if (!gameContainer || gameContainer.dataset.initialized === 'true') return;
+    gameContainer.dataset.initialized = 'true';
+
+    let game = $activeGame.get();
+
+    if (!game || !game.questions || !game.questions.length) {
+      void navigate('/categorias');
+      return;
+    }
+
+    let timerInterval: any = null;
+    let secondsLeft = 30;
+    let questionAnswered = false;
+    let isFinishing = false;
+
+    // Elementos del DOM
+    const categoryEl = document.getElementById('current-category');
+    const counterEl = document.getElementById('question-number');
+    const progressFractionEl = document.getElementById('game-progress-fraction');
+    const progressFillEl = document.getElementById('progress-bar-advance');
+    const timerEl = document.getElementById('timer');
+    const timerWrap = document.getElementById('timer-stat-wrap');
+    const scoreEl = document.getElementById('current-score');
+    const streakEl = document.getElementById('game-streak-badge');
+    const modeBadgeEl = document.getElementById('game-mode-badge');
+    const diffBadgeEl = document.getElementById('question-difficulty-badge');
+    const questionTextEl = document.getElementById('question-text');
+    const optionsContainer = document.getElementById('options-container');
+    const answerFeedback = document.getElementById('answer-feedback');
+    const answerFlash = document.getElementById('answer-flash');
+
+    const explanationWrap = document.getElementById('explanation-wrap');
+    const feedbackHeader = document.getElementById('feedback-header');
+    const feedbackIcon = document.getElementById('feedback-icon');
+    const feedbackText = document.getElementById('feedback-text');
+    const explanationText = document.getElementById('explanation-text');
+    const nextBtn = document.getElementById('btn-next-question');
+    const openAiChatBtn = document.getElementById('btn-open-ai-chat');
+
+    // Chat IA elementos
+    const aiChatOverlay = document.getElementById('ai-chat-overlay');
+    const closeAiChatBtn = document.getElementById('btn-close-ai-chat');
+    const aiChatMessages = document.getElementById('ai-chat-messages');
+    const aiChatInput = document.getElementById('ai-chat-input') as HTMLTextAreaElement | null;
+    const sendAiChatBtn = document.getElementById('btn-send-ai-chat') as HTMLButtonElement | null;
+    const aiChatUsage = document.getElementById('ai-chat-usage');
+    let chatHistory: Array<{ role: string; content: string }> = [];
+    let isChatSending = false;
+    let chatController: AbortController | null = null;
+    let answerFeedbackTimer: number | null = null;
+
+    // Header info
+    if (categoryEl) categoryEl.textContent = game.subcategory?.name || game.category?.name || 'Trivia';
+    if (modeBadgeEl) {
+      modeBadgeEl.textContent = game.mode === 'estudio' ? 'Modo estudio' : 'Modo clásico';
+      modeBadgeEl.className = `game-mode-badge ${game.mode}`;
+    }
+    if (timerWrap && game.mode === 'estudio') {
+      timerWrap.style.opacity = '0.4';
+      if (timerEl) timerEl.textContent = '∞';
+    }
+
+    function renderCurrentQuestion() {
+      questionAnswered = false;
+      const qIndex = game!.currentQuestionIndex;
+      const total = game!.questions.length;
+      const q = game!.questions[qIndex];
+
+      if (!q) {
+        finishGame();
+        return;
+      }
+
+      if (counterEl) counterEl.textContent = `Pregunta ${qIndex + 1} de ${total}`;
+      if (progressFractionEl) progressFractionEl.textContent = `${qIndex + 1} / ${total}`;
+      if (progressFillEl) progressFillEl.style.width = `${((qIndex + 1) / total) * 100}%`;
+      if (scoreEl) scoreEl.textContent = game!.score.toString();
+      if (streakEl) streakEl.innerHTML = `<i class="fas fa-fire"></i> Racha: ${game!.streak}`;
+
+      if (diffBadgeEl) {
+        diffBadgeEl.textContent = q.difficulty;
+        diffBadgeEl.style.color = q.difficulty === 'dificil' ? '#ef4444' : q.difficulty === 'medio' ? '#f59e0b' : '#10b981';
+      }
+
+      if (questionTextEl) questionTextEl.textContent = q.question;
+      if (explanationWrap) explanationWrap.style.display = 'none';
+      answerFeedback?.classList.remove('active');
+      if (answerFlash) answerFlash.style.opacity = '0';
+
+      // Barajar opciones conservando el índice original
+      const shuffled = q.options.map((opt, idx) => ({ text: opt, originalIndex: idx }));
+      for (let i = shuffled.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+      }
+
+      if (optionsContainer) {
+        optionsContainer.innerHTML = '';
+        shuffled.forEach((item, index) => {
+          const btn = document.createElement('button');
+          btn.className = `option-btn option-${index}`;
+          btn.textContent = item.text;
+          btn.addEventListener('click', () => handleSelectOption(item.originalIndex, btn));
+          optionsContainer.appendChild(btn);
+        });
+      }
+
+      // Reiniciar cronómetro en modo clásico
+      if (game!.mode === 'clasico') {
+        secondsLeft = 30;
+        if (timerEl) timerEl.textContent = secondsLeft.toString();
+        clearInterval(timerInterval);
+        timerInterval = setInterval(() => {
+          secondsLeft--;
+          if (timerEl) timerEl.textContent = secondsLeft.toString();
+          if (secondsLeft <= 5 && secondsLeft > 0) {
+            playSFX('timer_low');
+          }
+          if (secondsLeft <= 0) {
+            clearInterval(timerInterval);
+            handleSelectOption(-1, null);
+          }
+        }, 1000);
+      }
+    }
+
+    function handleSelectOption(selectedIndex: number, clickedBtn: HTMLButtonElement | null) {
+      if (questionAnswered) return;
+      questionAnswered = true;
+      clearInterval(timerInterval);
+
+      const qIndex = game!.currentQuestionIndex;
+      const q = game!.questions[qIndex];
+      const isCorrect = selectedIndex === q.correct;
+      const responseTime = Math.max(0, 30 - secondsLeft);
+
+      // Registrar intento
+      game!.attempts.push({
+        questionId: q.id,
+        selectedOriginalIndex: selectedIndex,
+        responseTimeSeconds: responseTime
+      });
+
+      // Calcular puntuación
+      if (isCorrect) {
+        playSFX('correct');
+        game!.streak += 1;
+        game!.correctAnswers += 1;
+        const multiplier = q.difficulty === 'dificil' ? 2 : q.difficulty === 'medio' ? 1.5 : 1;
+        const speedBonus = game!.mode === 'clasico' ? Math.max(0, secondsLeft) * 10 : 0;
+        game!.score += Math.round((100 + speedBonus) * multiplier);
+      } else {
+        playSFX('wrong');
+        game!.streak = 0;
+        game!.incorrectAnswers += 1;
+      }
+
+      // Marcar visualmente botones
+      const allButtons = optionsContainer?.querySelectorAll('.option-btn');
+      allButtons?.forEach((b: any) => {
+        b.disabled = true;
+      });
+
+      if (clickedBtn) {
+        clickedBtn.classList.add(isCorrect ? 'correct' : 'wrong');
+      }
+
+      showAnswerFeedback(isCorrect, selectedIndex === -1 ? '¡Tiempo agotado!' : isCorrect ? '¡Correcto!' : 'Incorrecto');
+
+      // Mostrar explicación
+      if (explanationWrap) {
+        explanationWrap.style.display = 'block';
+        if (feedbackIcon && feedbackText) {
+          if (isCorrect) {
+            feedbackIcon.className = 'fas fa-check-circle';
+            feedbackIcon.style.color = 'var(--success-color, #10b981)';
+            feedbackText.textContent = '¡Correcto!';
+          } else {
+            feedbackIcon.className = 'fas fa-times-circle';
+            feedbackIcon.style.color = 'var(--error-color, #ef4444)';
+            feedbackText.textContent = selectedIndex === -1 ? '¡Tiempo agotado!' : 'Incorrecto';
+          }
+        }
+        if (explanationText) {
+          explanationText.textContent = q.explanation || 'No hay explicación adicional disponible.';
+        }
+      }
+
+      $activeGame.set({ ...game! });
+    }
+
+    function showAnswerFeedback(isCorrect: boolean, message: string) {
+      if (!answerFeedback || !answerFlash) return;
+      if (answerFeedbackTimer !== null) window.clearTimeout(answerFeedbackTimer);
+      const icon = answerFeedback.querySelector<HTMLElement>('.feedback-icon');
+      const text = answerFeedback.querySelector<HTMLElement>('.feedback-text');
+      if (icon) icon.className = `feedback-icon fas ${isCorrect ? 'fa-check-circle feedback-correct' : 'fa-times-circle feedback-incorrect'}`;
+      if (text) {
+        text.className = `feedback-text ${isCorrect ? 'feedback-correct' : 'feedback-incorrect'}`;
+        text.textContent = message;
+      }
+      answerFlash.className = `flash-screen ${isCorrect ? 'flash-correct' : 'flash-incorrect'}`;
+      answerFlash.style.opacity = '1';
+      answerFeedback.classList.add('active');
+      answerFeedbackTimer = window.setTimeout(() => {
+        answerFeedback.classList.remove('active');
+        answerFlash.style.opacity = '0';
+        answerFeedbackTimer = null;
+      }, 1100);
+    }
+
+    nextBtn?.addEventListener('click', () => {
+      game!.currentQuestionIndex += 1;
+      $activeGame.set({ ...game! });
+      if (game!.currentQuestionIndex < game!.questions.length) {
+        renderCurrentQuestion();
+      } else {
+        finishGame();
+      }
+    });
+
+    async function finishGame() {
+      if (isFinishing) return;
+      isFinishing = true;
+      clearInterval(timerInterval);
+      const user = $currentUser.get();
+
+      // Guardar partida en backend si hay sesión
+      if (user) {
+        try {
+          await api.post('/games', {
+            clientGameId: game!.clientGameId,
+            categoryId: game!.category?.id,
+            subcategoryId: game!.subcategory?.id,
+            categoryName: game!.category?.name,
+            subcategoryName: game!.subcategory?.name,
+            mode: game!.mode,
+            playedAt: game!.playedAt,
+            attempts: game!.attempts
+          });
+        } catch (e) {
+          // Encolar offline
+          try {
+            const pending = JSON.parse(localStorage.getItem('linguizate_pending_games') || '[]');
+            pending.push({
+              clientGameId: game!.clientGameId,
+              categoryId: game!.category?.id,
+              subcategoryId: game!.subcategory?.id,
+              categoryName: game!.category?.name,
+              subcategoryName: game!.subcategory?.name,
+              mode: game!.mode,
+              playedAt: game!.playedAt,
+              attempts: game!.attempts
+            });
+            localStorage.setItem('linguizate_pending_games', JSON.stringify(pending));
+          } catch (_err) {}
+        }
+      }
+
+      await navigate('/resultados');
+    }
+
+    function setChatUsage(usage: { remaining: number; limit: number }) {
+      if (aiChatUsage) aiChatUsage.textContent = `${usage.remaining} de ${usage.limit} preguntas disponibles hoy`;
+      if (sendAiChatBtn) sendAiChatBtn.disabled = usage.remaining <= 0 || isChatSending;
+      if (aiChatInput) aiChatInput.disabled = usage.remaining <= 0;
+    }
+
+    function appendChatMessage(role: 'user' | 'assistant', text = '') {
+      const message = document.createElement('div');
+      message.className = `ai-msg ${role}`;
+      const content = document.createElement('div');
+      content.className = 'ai-msg-content';
+      content.textContent = text;
+      message.appendChild(content);
+      aiChatMessages?.appendChild(message);
+      return content;
+    }
+
+    function renderChatContext(question: { question: string; explanation?: string }) {
+      if (!aiChatMessages) return;
+      aiChatMessages.replaceChildren();
+
+      const banner = document.createElement('div');
+      banner.className = 'ai-context-banner';
+      const questionLine = document.createElement('p');
+      const questionLabel = document.createElement('strong');
+      questionLabel.textContent = 'Pregunta: ';
+      questionLine.append(questionLabel, document.createTextNode(question.question));
+      const explanationLine = document.createElement('p');
+      const explanationLabel = document.createElement('strong');
+      explanationLabel.textContent = 'Explicación: ';
+      explanationLine.append(explanationLabel, document.createTextNode(question.explanation || 'Sin explicación adicional.'));
+      banner.append(questionLine, explanationLine);
+      aiChatMessages.appendChild(banner);
+      appendChatMessage('assistant', 'Soy tu tutor de lingüística. Pregunta sobre este concepto, idiomas, gramática, traducción o escritura.');
+    }
+
+    openAiChatBtn?.addEventListener('click', () => {
+      const q = game!.questions[game!.currentQuestionIndex];
+      if (!q) return;
+      chatHistory = [];
+      renderChatContext(q);
+      if (aiChatOverlay) aiChatOverlay.style.display = 'flex';
+
+      const user = $currentUser.get();
+      const canUseChat = user?.role === 'estudiante';
+      if (aiChatInput) aiChatInput.disabled = !canUseChat;
+      if (sendAiChatBtn) sendAiChatBtn.disabled = !canUseChat;
+      if (!canUseChat) {
+        appendChatMessage('assistant', 'Inicia sesión como estudiante para usar el tutor.');
+        if (aiChatUsage) aiChatUsage.textContent = '';
+        return;
+      }
+
+      aiChatInput?.focus();
+      void api.get('/chat/usage')
+        .then((usage: any) => setChatUsage(usage))
+        .catch((error: any) => {
+          if (aiChatUsage) aiChatUsage.textContent = error.message || 'No se pudo consultar el límite.';
+        });
+    });
+
+    closeAiChatBtn?.addEventListener('click', () => {
+      chatController?.abort();
+      if (aiChatOverlay) aiChatOverlay.style.display = 'none';
+    });
+
+    async function sendChatMessage() {
+      const text = (aiChatInput?.value || '').trim();
+      if (!text || isChatSending || !aiChatMessages) return;
+      const q = game!.questions[game!.currentQuestionIndex];
+      if (!q) return;
+
+      isChatSending = true;
+      if (sendAiChatBtn) sendAiChatBtn.disabled = true;
+      if (aiChatInput) {
+        aiChatInput.value = '';
+        resizeChatInput();
+      }
+      appendChatMessage('user', text);
+
+      const assistantContent = appendChatMessage('assistant');
+      assistantContent.innerHTML = '<span class="wave-loader" aria-hidden="true"><i></i><i></i><i></i></span> Escribiendo…';
+      aiChatMessages.scrollTop = aiChatMessages.scrollHeight;
+
+      let reply = '';
+      let renderFrame: number | null = null;
+      const renderReply = () => {
+        if (renderFrame !== null) return;
+        renderFrame = requestAnimationFrame(() => {
+          renderFrame = null;
+          assistantContent.innerHTML = renderSafeMarkdown(reply);
+          aiChatMessages.scrollTop = aiChatMessages.scrollHeight;
+        });
+      };
+
+      chatController = new AbortController();
+      try {
+        await api.streamChat({
+          question: q.question,
+          explanation: q.explanation,
+          userMessage: text,
+          history: chatHistory
+        }, {
+          onDelta(delta: string) {
+            reply += delta;
+            renderReply();
+          },
+          onUsage(usage: any) {
+            setChatUsage(usage);
+          }
+        }, chatController.signal);
+
+        if (!reply.trim()) throw new Error('La IA no generó una respuesta.');
+        chatHistory.push({ role: 'user', content: text });
+        chatHistory.push({ role: 'assistant', content: reply });
+        renderReply();
+      } catch (error: any) {
+        if (renderFrame !== null) cancelAnimationFrame(renderFrame);
+        renderFrame = null;
+        if (error?.name === 'AbortError') return;
+        if (reply) {
+          assistantContent.innerHTML = renderSafeMarkdown(reply);
+          const errorLine = document.createElement('p');
+          errorLine.className = 'ai-stream-error';
+          errorLine.textContent = `Respuesta interrumpida: ${error.message || 'error de conexión'}`;
+          assistantContent.appendChild(errorLine);
+        } else {
+          assistantContent.textContent = error.message || 'Error al conectar con la IA.';
+          assistantContent.classList.add('error');
+        }
+      } finally {
+        isChatSending = false;
+        chatController = null;
+        if (sendAiChatBtn && !aiChatInput?.disabled) sendAiChatBtn.disabled = false;
+        aiChatMessages.scrollTop = aiChatMessages.scrollHeight;
+        aiChatInput?.focus();
+      }
+    }
+
+    sendAiChatBtn?.addEventListener('click', () => void sendChatMessage());
+    function resizeChatInput() {
+      if (!aiChatInput) return;
+      aiChatInput.style.height = 'auto';
+      const styles = getComputedStyle(aiChatInput);
+      const lineHeight = Number.parseFloat(styles.lineHeight) || 22;
+      const verticalChrome = Number.parseFloat(styles.paddingTop)
+        + Number.parseFloat(styles.paddingBottom)
+        + Number.parseFloat(styles.borderTopWidth)
+        + Number.parseFloat(styles.borderBottomWidth);
+      const maxHeight = Math.ceil(lineHeight * 5 + verticalChrome);
+      aiChatInput.style.height = `${Math.min(aiChatInput.scrollHeight, maxHeight)}px`;
+      aiChatInput.style.overflowY = aiChatInput.scrollHeight > maxHeight ? 'auto' : 'hidden';
+    }
+
+    aiChatInput?.addEventListener('keydown', (event) => {
+      if (event.key === 'Enter' && !event.shiftKey && !event.isComposing) {
+        event.preventDefault();
+        void sendChatMessage();
+      }
+    });
+    aiChatInput?.addEventListener('input', resizeChatInput);
+    resizeChatInput();
+
+    renderCurrentQuestion();
+  }
+
+  setupGame();
+  document.addEventListener('astro:page-load', setupGame);
+</script>

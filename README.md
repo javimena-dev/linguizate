@@ -4,32 +4,54 @@ Aplicación web de trivia lingüística con roles de estudiante, profesor y admi
 
 ## Arquitectura
 
-El proyecto está separado en dos capas:
+El proyecto está separado en capas modernas:
 
-- `frontend/`: HTML, CSS, JavaScript, imágenes, avatares y sonidos. No contiene credenciales ni archivos de datos.
-- `backend/`: API Express, autenticación, SQLite, chat con IA, migraciones, semillas y pruebas.
+- `frontend-astro/`: Frontend moderno desarrollado en **Astro 5** con enrutamiento por archivos, View Transitions para persistencia de audio de fondo y estado reactivo con Nano Stores.
+- `backend/`: API Express, autenticación JWT en cookies HttpOnly, persistencia en SQLite, chat contextual con IA, migraciones y pruebas.
+- `frontend/`: Versión frontend legacy para compatibilidad retroactiva.
 
-Express sirve el frontend y la API desde el mismo origen. SQLite es la fuente de verdad para usuarios, preguntas, categorías, partidas, ranking y estadísticas. El navegador conserva únicamente preferencias visuales y una cola temporal de partidas pendientes.
+Express sirve el frontend compilado (`frontend-astro/dist/` o `frontend/`) y la API desde el mismo origen. SQLite es la fuente de verdad para usuarios, preguntas, categorías, partidas, ranking y estadísticas.
 
-## Ejecutar
+## Ejecución
 
 Requiere Node.js 18 o superior.
 
+### Modo Producción (Servidor Único)
+
 ```powershell
-cd backend
+# 1. Compilar frontend Astro
+cd frontend-astro
+npm install --legacy-peer-deps
+npm run build
+
+# 2. Iniciar backend Express
+cd ../backend
 npm install
 npm start
 ```
 
-Abre [http://localhost:3000](http://localhost:3000). No abras `frontend/index.html` directamente ni uses un servidor estático independiente, porque la aplicación necesita la API.
+Abre [http://localhost:3000](http://localhost:3000). El panel de administración está en [http://localhost:3000/administracion](http://localhost:3000/administracion).
 
-Para configurar el chat, copia `backend/.env.example` como `backend/.env` y añade `GROQ_API_KEY` u `OPENAI_API_KEY`.
+### Modo Desarrollo (con Hot Reloading en Astro)
+
+En dos terminales independientes:
+```powershell
+# Terminal 1 - Backend API (http://localhost:3000)
+cd backend
+npm start
+
+# Terminal 2 - Frontend Astro con HMR (http://localhost:4321)
+cd frontend-astro
+npm run dev
+```
+
+Abre [http://localhost:4321](http://localhost:4321). Las llamadas a `/api/*` se redirigen automáticamente al backend. Para más detalles, consulta [MIGRACION-ASTRO.md](MIGRACION-ASTRO.md).
 
 ## Cuentas iniciales
 
 | Rol | Identificador | Contraseña |
 |---|---|---|
-| Administrador | `admin` | `admin123` |
+| Administrador | `admin` (en `/administracion`) | `admin123` |
 | Profesor | `profesor@linguizate.com` | `profesor123` |
 | Estudiante | `estudiante@linguizate.com` | `estudiante123` |
 

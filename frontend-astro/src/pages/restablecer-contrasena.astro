@@ -1,0 +1,15 @@
+---
+import AppLayout from '../layouts/AppLayout.astro';
+---
+
+<AppLayout title="Nueva contraseña - Lingüízate" showBack backUrl="/login">
+  <section class="container container-auth-tight login-screen-layout"><div class="auth-form auth-card auth-form-compact">
+    <h1 class="auth-title-compact">Nueva contraseña</h1><form id="form"><div class="form-group"><label for="password">Contraseña nueva</label><input id="password" type="password" autocomplete="new-password" required /></div><div class="form-group"><label for="confirmation">Confirmar contraseña</label><input id="confirmation" type="password" autocomplete="new-password" required /></div><button class="btn-primary btn-auth-submit">Guardar contraseña</button></form><p id="message" class="auth-notification" hidden aria-live="polite"></p>
+  </div></section>
+</AppLayout>
+<style>.form-group input { width:100%;box-sizing:border-box;padding:.72rem .8rem;border:1px solid #d4d9e3;border-radius:.55rem; }</style>
+<script>
+  import { navigate } from 'astro:transitions/client'; import { api } from '../scripts/api';
+  const params = new URLSearchParams(location.search); const form = document.querySelector<HTMLFormElement>('#form')!; const message = document.querySelector<HTMLElement>('#message')!;
+  form.addEventListener('submit', async (event) => { event.preventDefault(); const password = document.querySelector<HTMLInputElement>('#password')!.value; const confirmation = document.querySelector<HTMLInputElement>('#confirmation')!.value; if (!params.get('token') || !params.get('email')) { message.hidden = false; message.textContent = 'El enlace no es válido.'; return; } if (password.length < 8 || password !== confirmation) { message.hidden = false; message.textContent = 'Usa al menos 8 caracteres y confirma la contraseña.'; return; } try { const result = await api.post('/auth/password/reset', { token: params.get('token'), email: params.get('email'), password, password_confirmation: confirmation }); message.hidden = false; message.style.color = '#197149'; message.textContent = result.message; setTimeout(() => navigate('/login'), 1200); } catch (error: any) { message.hidden = false; message.style.color = '#c53030'; message.textContent = error?.message || 'No se pudo cambiar la contraseña.'; } });
+</script>

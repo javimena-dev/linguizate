@@ -1,0 +1,21 @@
+---
+import FormField from './FormField.astro';
+interface Props {
+  id: string;
+  label?: string;
+  name?: string;
+  type?: string;
+  placeholder?: string;
+  value?: string;
+  autocomplete?: string;
+  required?: boolean;
+  disabled?: boolean;
+  hint?: string;
+  error?: string;
+  class?: string;
+}
+const { id, label, name = id, type = 'text', placeholder, value, autocomplete, required = false, disabled = false, hint, error, class: className = '' } = Astro.props;
+---
+{label ? <FormField id={id} label={label} hint={hint} error={error} required={required} class={className}>
+  <input class="ui-control" id={id} name={name} type={type} placeholder={placeholder} value={value} autocomplete={autocomplete} required={required} disabled={disabled} aria-describedby={error || hint ? `${id}-description` : undefined} />
+</FormField> : <input class:list={['ui-control', className]} id={id} name={name} type={type} placeholder={placeholder} value={value} autocomplete={autocomplete} required={required} disabled={disabled} />}

@@ -1,0 +1,18 @@
+---
+interface Props {
+  id: string;
+  label: string;
+  hint?: string;
+  error?: string;
+  required?: boolean;
+  class?: string;
+}
+const { id, label, hint, error, required = false, class: className = '' } = Astro.props;
+const descriptionId = hint || error ? `${id}-description` : undefined;
+---
+<div class:list={['ui-field', className, { 'is-invalid': error }]}>
+  <label class="ui-label" for={id}>{label}{required && <span aria-hidden="true" class="ui-required"> *</span>}</label>
+  <slot />
+  {error && <span class="ui-error" id={descriptionId} role="alert">{error}</span>}
+  {!error && hint && <span class="ui-hint" id={descriptionId}>{hint}</span>}
+</div>

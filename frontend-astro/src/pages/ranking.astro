@@ -1,0 +1,122 @@
+---
+import AppLayout from '../layouts/AppLayout.astro';
+import ResponsiveTable from '../components/ui/ResponsiveTable.astro';
+---
+<AppLayout title="Ranking Global - Lingüízate" showBack backUrl="/">
+  <div class="container" id="ranking-screen" style="max-width: 900px; padding: 40px 16px;">
+    <header style="text-align: center; margin-bottom: 30px;">
+      <h2 style="font-size: 2.2rem; margin-bottom: 8px;">
+        <i class="fas fa-trophy" style="color: var(--accent-color); margin-right: 10px;"></i>
+        Ranking Global
+      </h2>
+      <p class="text-secondary">Los estudiantes y profesores con mayor puntuación en Lingüízate</p>
+    </header>
+
+    <div class="card" style="background: var(--bg-primary); border-radius: var(--border-radius); border: 1px solid var(--border-color); overflow: hidden; box-shadow: var(--shadow-sm);">
+      <div id="ranking-loading" style="text-align: center; padding: 40px;">
+        <span class="wave-loader" aria-hidden="true"><i></i><i></i><i></i></span>
+        <p style="margin-top: 10px;">Cargando clasificación...</p>
+      </div>
+
+      <ResponsiveTable label="Tabla de ranking global" id="ranking-table-wrap" class="table-responsive" style="display: none;">
+        <table style="width: 100%; border-collapse: collapse; text-align: left;">
+          <thead>
+            <tr style="border-bottom: 1px solid var(--table-row-border); background: var(--bg-secondary);">
+              <th style="padding: 14px 20px; font-weight: 600;">Pos.</th>
+              <th style="padding: 14px 20px; font-weight: 600;">Usuario</th>
+              <th style="padding: 14px 20px; font-weight: 600;">Rol</th>
+              <th style="padding: 14px 20px; font-weight: 600; text-align: right;">Partidas</th>
+              <th style="padding: 14px 20px; font-weight: 600; text-align: right;">Puntos</th>
+            </tr>
+          </thead>
+          <tbody id="ranking-tbody">
+            <!-- Filas dinámicas -->
+          </tbody>
+        </table>
+      </ResponsiveTable>
+    </div>
+  </div>
+</AppLayout>
+
+<script>
+  import { api } from '../scripts/api';
+  import { $currentUser, fetchCurrentSession } from '../scripts/store';
+  import { resolveAvatarUrl, getInitials } from '../scripts/avatar';
+
+  const escapeHtml = (value: unknown) => String(value ?? '').replace(/[&<>'"]/g, (char) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#039;', '"': '&quot;' }[char]!));
+
+  async function loadRanking(force = false) {
+    const screen = document.getElementById('ranking-screen');
+    if (!screen) return;
+    if (!force && screen.dataset.initialized === 'true') return;
+    screen.dataset.initialized = 'true';
+
+    await fetchCurrentSession();
+    const loadingEl = document.getElementById('ranking-loading');
+    const tableWrap = document.getElementById('ranking-table-wrap');
+    const tbody = document.getElementById('ranking-tbody');
+
+    if (loadingEl) {
+      loadingEl.style.display = 'block';
+      loadingEl.innerHTML = '<span class="wave-loader" aria-hidden="true"><i></i><i></i><i></i></span><p style="margin-top: 10px;">Cargando clasificación…</p>';
+    }
+    if (tableWrap) tableWrap.style.display = 'none';
+
+    try {
+      const res = await api.get<{ users: any[] }>('/ranking');
+      const users = res.users || [];
+      const current = $currentUser.get();
+
+      if (loadingEl) loadingEl.style.display = 'none';
+      if (tableWrap) tableWrap.style.display = 'block';
+
+      if (tbody) {
+        tbody.innerHTML = users
+          .map((u, index) => {
+            const isMe = current && current.id === u.id;
+            const medal = index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : `${index + 1}`;
+            const roleBadge = u.role === 'profesor'
+              ? '<span style="font-size: 0.75rem; padding: 2px 8px; border-radius: 12px; background: rgba(99, 102, 241, 0.15); color: var(--primary-color);">Profesor</span>'
+              : '<span style="font-size: 0.75rem; padding: 2px 8px; border-radius: 12px; background: rgba(16, 185, 129, 0.15); color: var(--success-color);">Estudiante</span>';
+
+            const avatarUrl = resolveAvatarUrl(u.avatar);
+            const initials = getInitials(u.name || 'U');
+
+            return `
+              <tr style="border-bottom: 1px solid var(--table-row-border); ${isMe ? 'background: rgba(99, 102, 241, 0.08); font-weight: 600;' : ''}">
+                <td style="padding: 14px 20px; font-size: 1.1rem;">${medal}</td>
+                <td style="padding: 14px 20px; display: flex; align-items: center; gap: 10px;">
+                  ${avatarUrl ? `<img src="${escapeHtml(avatarUrl)}" alt="Avatar" style="width:34px;height:34px;border-radius:50%;object-fit:cover;">` : `<span style="display: inline-flex; align-items: center; justify-content: center; width: 34px; height: 34px; border-radius: 50%; background: var(--bg-tertiary); font-weight: 700; font-size: 0.85rem;">${escapeHtml(initials)}</span>`}
+                  <span>${escapeHtml(u.name)} ${isMe ? '<span style="color: var(--primary-color);">(Tú)</span>' : ''}</span>
+                </td>
+                <td style="padding: 14px 20px;">${roleBadge}</td>
+                <td style="padding: 14px 20px; text-align: right;">${u.gamesPlayed || 0}</td>
+                <td style="padding: 14px 20px; text-align: right; font-weight: 700; color: var(--primary-color); font-size: 1.05rem;">
+                  ${(u.score || 0).toLocaleString()} pts
+                </td>
+              </tr>
+            `;
+          })
+          .join('');
+      }
+    } catch (e: any) {
+      if (loadingEl) {
+        loadingEl.style.display = 'block';
+        loadingEl.innerHTML = `
+          <div style="text-align: center; padding: 20px;">
+            <p class="text-secondary" style="color: var(--error-color); margin-bottom: 12px;">
+              ${escapeHtml(e.message || 'No se pudo cargar el ranking.')}
+            </p>
+            <button type="button" class="btn-secondary" id="btn-retry-ranking">
+              <i class="fas fa-redo"></i> Reintentar
+            </button>
+          </div>
+        `;
+        document.getElementById('btn-retry-ranking')?.addEventListener('click', () => void loadRanking(true));
+      }
+    }
+  }
+
+  loadRanking();
+  document.addEventListener('astro:page-load', () => void loadRanking());
+</script>

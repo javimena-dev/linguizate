@@ -1,0 +1,292 @@
+---
+import AppLayout from '../../layouts/AppLayout.astro';
+---
+<AppLayout title="Seleccionar Categoría - Lingüízate" showBack backUrl="/">
+  <div class="container container-categorias-layout" id="categories-screen">
+    <header class="categorias-screen-header">
+      <div class="categorias-header-main">
+        <h2 id="cat-screen-title">Selecciona una Categoría</h2>
+        <p id="cat-screen-subtitle" class="text-secondary" style="margin-top: 4px;">
+          Elige la rama lingüística en la que deseas poner a prueba tus conocimientos
+        </p>
+      </div>
+      <div id="cat-nav-actions" style="display: none; margin-top: 10px;">
+        <button type="button" id="btn-back-to-categories" class="btn-secondary btn-small">
+          <i class="fas fa-arrow-left"></i> Ver todas las categorías
+        </button>
+      </div>
+    </header>
+
+    <div class="categories-scroll-region">
+      <!-- Grid de categorías principales -->
+      <div class="categories-grid" id="categories-grid">
+        <div class="loading-spinner-wrap" style="text-align: center; padding: 40px; grid-column: 1 / -1;">
+          <span class="wave-loader" aria-hidden="true"><i></i><i></i><i></i></span>
+          <p style="margin-top: 10px;">Cargando catálogo...</p>
+        </div>
+      </div>
+
+      <!-- Grid de subcategorías (oculto inicialmente) -->
+      <div class="subcategories-grid" id="subcategories-grid" style="display: none;">
+      </div>
+    </div>
+  </div>
+</AppLayout>
+
+<script>
+  import { navigate } from 'astro:transitions/client';
+  import { api } from '../../scripts/api';
+  import { $activeGame, $currentMode } from '../../scripts/store';
+  import { playSFX } from '../../scripts/audio';
+  import { notify, setButtonLoading } from '../../scripts/feedback';
+
+  interface Subcategory {
+    id: string;
+    name: string;
+    description: string;
+    icon: string;
+    questionCount: number;
+  }
+
+  interface Category {
+    id: string;
+    name: string;
+    description: string;
+    icon: string;
+    subcategories: Subcategory[];
+  }
+
+  let catalog: Category[] = [];
+  let selectedCategory: Category | null = null;
+  let randomSelectionRunning = false;
+
+  const CATEGORY_COLORS: Record<string, string> = {
+    general: '#6366F1',
+    descriptiva: '#8B5CF6',
+    historica: '#F59E0B',
+    sociolinguistica: '#FF8C00',
+    psicolinguistica: '#EC4899',
+    computacional: '#06B6D4',
+    aplicada: '#10B981',
+    diversidad_curiosidades: '#F97316'
+  };
+
+  function categoryColor(id: string) {
+    return CATEGORY_COLORS[id] || '#6366F1';
+  }
+
+  async function loadCatalog(force = false) {
+    const screen = document.getElementById('categories-screen');
+    if (!screen) return;
+    if (!force && screen.dataset.initialized === 'true') return;
+    screen.dataset.initialized = 'true';
+
+    const catGrid = document.getElementById('categories-grid');
+    const subGrid = document.getElementById('subcategories-grid');
+    const titleEl = document.getElementById('cat-screen-title');
+    const subtitleEl = document.getElementById('cat-screen-subtitle');
+    const backBtnWrap = document.getElementById('cat-nav-actions');
+    const backBtn = document.getElementById('btn-back-to-categories');
+
+    if (catGrid) {
+      catGrid.innerHTML = `
+        <div class="loading-spinner-wrap" style="text-align: center; padding: 40px; grid-column: 1 / -1;">
+          <span class="wave-loader" aria-hidden="true"><i></i><i></i><i></i></span>
+          <p style="margin-top: 10px;">Cargando catálogo…</p>
+        </div>
+      `;
+    }
+
+    try {
+      const res = await api.get<{ categories: Category[] }>('/catalog');
+      catalog = res.categories || [];
+      renderCategories();
+    } catch (e: any) {
+      if (catGrid) {
+        catGrid.innerHTML = `
+          <div class="error-msg" style="grid-column: 1 / -1; text-align: center; color: var(--error-color); padding: 30px;">
+            <i class="fas fa-exclamation-triangle fa-2x"></i>
+            <p style="margin: 10px 0 16px;">No se pudo cargar el catálogo de preguntas.</p>
+            <button type="button" class="btn-secondary" id="btn-retry-catalog">
+              <i class="fas fa-redo"></i> Reintentar
+            </button>
+          </div>
+        `;
+        document.getElementById('btn-retry-catalog')?.addEventListener('click', () => void loadCatalog(true));
+      }
+    }
+
+    function renderCategories() {
+      if (!catGrid) return;
+      catGrid.style.display = 'grid';
+      if (subGrid) subGrid.style.display = 'none';
+      if (backBtnWrap) backBtnWrap.style.display = 'none';
+      if (titleEl) titleEl.textContent = 'Selecciona una Categoría';
+      if (subtitleEl) subtitleEl.textContent = 'Elige la rama lingüística en la que deseas poner a prueba tus conocimientos';
+
+      catGrid.innerHTML = `
+        <button type="button" class="random-category-btn" id="btn-random-category" aria-label="Seleccionar una categoría al azar">
+          <i class="fas fa-random" aria-hidden="true"></i>
+          <h3>Selección Aleatoria</h3>
+          <p>¡Deja que la suerte decida tu categoría!</p>
+        </button>
+      ` + catalog
+        .map(
+          (cat) => `
+          <button type="button" class="category-card" data-cat-id="${cat.id}" style="--category-color: ${categoryColor(cat.id)}">
+            <div class="category-card-icon">
+              <i class="${cat.icon || 'fas fa-book'}"></i>
+            </div>
+            <div class="category-card-info">
+              <h3>${cat.name}</h3>
+              <p>${cat.description || ''}</p>
+              <span class="category-card-badge">
+                ${cat.subcategories.length} temas
+              </span>
+            </div>
+          </button>
+        `
+        )
+        .join('');
+
+      document.getElementById('btn-random-category')?.addEventListener('click', selectRandomCategory);
+
+      catGrid.querySelectorAll('.category-card').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          const catId = btn.getAttribute('data-cat-id');
+          const cat = catalog.find((c) => c.id === catId);
+          if (cat) {
+            playSFX('select');
+            showSubcategories(cat);
+          }
+        });
+      });
+    }
+
+    function selectRandomCategory() {
+      if (!catGrid || randomSelectionRunning || !catalog.length) return;
+      const cards = Array.from(catGrid.querySelectorAll<HTMLButtonElement>('.category-card'));
+      const randomButton = document.getElementById('btn-random-category') as HTMLButtonElement | null;
+      if (!cards.length) return;
+
+      randomSelectionRunning = true;
+      catGrid.setAttribute('aria-busy', 'true');
+      cards.forEach((card) => { card.disabled = true; });
+      if (randomButton) randomButton.disabled = true;
+      playSFX('select');
+
+      const winnerIndex = Math.floor(Math.random() * cards.length);
+      const steps = cards.length * 2 + winnerIndex + 1;
+      let step = 0;
+
+      const clearHighlights = () => cards.forEach((card) => card.classList.remove('ruleta-active', 'ruleta-winner'));
+      const advance = () => {
+        clearHighlights();
+        const activeIndex = step % cards.length;
+        const activeCard = cards[activeIndex];
+        const finished = step === steps - 1;
+        activeCard.classList.add(finished ? 'ruleta-winner' : 'ruleta-active');
+        if (finished) {
+          playSFX('correct');
+          window.setTimeout(() => {
+            clearHighlights();
+            catGrid.removeAttribute('aria-busy');
+            cards.forEach((card) => { card.disabled = false; });
+            if (randomButton) randomButton.disabled = false;
+            randomSelectionRunning = false;
+            showSubcategories(catalog[winnerIndex]);
+          }, 850);
+          return;
+        }
+
+        step += 1;
+        const progress = step / steps;
+        window.setTimeout(advance, 65 + Math.round(progress * progress * 180));
+      };
+
+      advance();
+    }
+
+    function showSubcategories(cat: Category) {
+      selectedCategory = cat;
+      if (!catGrid || !subGrid) return;
+      catGrid.style.display = 'none';
+      subGrid.style.display = 'grid';
+      subGrid.dataset.count = String(cat.subcategories.length);
+      if (backBtnWrap) backBtnWrap.style.display = 'block';
+      if (titleEl) titleEl.textContent = cat.name;
+      if (subtitleEl) subtitleEl.textContent = 'Selecciona una subcategoría para comenzar la trivia';
+
+      subGrid.innerHTML = cat.subcategories
+        .map(
+          (sub) => `
+          <button type="button" class="subcategory-card" data-sub-id="${sub.id}" style="--category-color: ${categoryColor(cat.id)}">
+            <div class="subcategory-card-icon">
+              <i class="${sub.icon || 'fas fa-book-open'}"></i>
+            </div>
+            <div class="subcategory-card-info">
+              <h4>${sub.name}</h4>
+              <p>${sub.description || ''}</p>
+              <span class="subcategory-card-count">
+                <i class="fas fa-question-circle"></i> ${sub.questionCount} preguntas
+              </span>
+            </div>
+          </button>
+        `
+        )
+        .join('');
+
+      subGrid.querySelectorAll('.subcategory-card').forEach((btn) => {
+        btn.addEventListener('click', async () => {
+          const subId = btn.getAttribute('data-sub-id');
+          const sub = cat.subcategories.find((s) => s.id === subId);
+          if (!sub) return;
+
+          const actionButton = btn as HTMLButtonElement;
+          setButtonLoading(actionButton, true, 'Preparando');
+          playSFX('select');
+
+          try {
+            const qRes = await api.get<{ questions: any[] }>(`/subcategories/${subId}/questions`);
+            const questions = qRes.questions || [];
+
+            if (!questions.length) {
+              notify({ kind: 'warning', message: 'Esta subcategoría no tiene preguntas activas.' });
+              setButtonLoading(actionButton, false);
+              return;
+            }
+
+            // Iniciar partida
+            $activeGame.set({
+              clientGameId: `game_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
+              category: { id: cat.id, name: cat.name },
+              subcategory: { id: sub.id, name: sub.name },
+              mode: $currentMode.get(),
+              questions,
+              currentQuestionIndex: 0,
+              score: 0,
+              streak: 0,
+              correctAnswers: 0,
+              incorrectAnswers: 0,
+              attempts: [],
+              playedAt: new Date().toISOString()
+            });
+
+            await navigate('/juego');
+          } catch (e: any) {
+            setButtonLoading(actionButton, false);
+            notify({ kind: 'error', message: e.message || 'No se pudieron cargar las preguntas.' });
+          }
+        });
+      });
+    }
+
+    backBtn?.addEventListener('click', () => {
+      playSFX('select');
+      renderCategories();
+    });
+  }
+
+  loadCatalog();
+  document.addEventListener('astro:page-load', loadCatalog);
+</script>

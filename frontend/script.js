@@ -644,15 +644,13 @@ async function initializeApp() {
         loadTheme();
         loadMusicPreference();
 
-        // Mostrar pantalla inicial
-        console.log('Mostrando pantalla inicial...');
-        const screenShown = showScreen('inicio-screen');
-        if (!screenShown) {
-            throw new Error('No se pudo mostrar la pantalla inicial');
-        }
-        if (currentUser && currentUserType === 'estudiante') {
-            if (window.location.pathname === '/biblioteca') showScreen('biblioteca-screen');
-            if (window.location.pathname === '/progresos') showScreen('progresos-screen');
+        // Mostrar pantalla según la ruta
+        console.log('Resolviendo ruta inicial...');
+        if (!(await applyRouteFromPath())) {
+            const screenShown = showScreen('inicio-screen');
+            if (!screenShown) {
+                throw new Error('No se pudo mostrar la pantalla inicial');
+            }
         }
 
         console.log('✅ Aplicación inicializada exitosamente');
@@ -854,17 +852,6 @@ function setupEventListeners() {
             playBackgroundMusicIfAllowed();
             showScreen('login-screen');
         });
-        // Acceso al Admin: solo por icono secreto en footer o atajo Ctrl+Shift+Alt+A (invisible para Estudiante/Profesor)
-        const footerAdminSecret = document.getElementById('footer-admin-secret');
-        if (footerAdminSecret) {
-            footerAdminSecret.addEventListener('click', (e) => { e.preventDefault(); showScreen('admin-screen'); });
-        }
-        document.addEventListener('keydown', (e) => {
-            if (e.ctrlKey && e.shiftKey && e.altKey && e.key === 'A') {
-                e.preventDefault();
-                showScreen('admin-screen');
-            }
-        });
         addSafeEventListener('btn-ranking', 'click', () => {
             console.log('Botón Ranking clickeado');
             playSFX('click');
@@ -986,9 +973,7 @@ function setupEventListeners() {
         }
 
         window.addEventListener('popstate', () => {
-            if (window.location.pathname === '/biblioteca') showScreen('biblioteca-screen');
-            else if (window.location.pathname === '/progresos') showScreen('progresos-screen');
-            else showScreen('inicio-screen');
+            if (!applyRouteFromPath()) showScreen('inicio-screen');
         });
 
         // Selector de modo de juego
@@ -1165,6 +1150,28 @@ async function restoreSessionFromStorage() {
     }
 }
 
+// Resolver la pantalla según la ruta actual. Devuelve true si manejó la ruta.
+async function applyRouteFromPath() {
+    var path = window.location.pathname.replace(/\/+$/, '') || '/';
+    if (path === '/administracion') {
+        if (currentUser && currentUserType === 'admin') {
+            await openAdminPanel();
+        } else {
+            showScreen('admin-screen');
+        }
+        return true;
+    }
+    if (path === '/biblioteca') {
+        showScreen('biblioteca-screen');
+        return true;
+    }
+    if (path === '/progresos') {
+        showScreen('progresos-screen');
+        return true;
+    }
+    return false;
+}
+
 // Actualizar Navbar: mostrar nombre + indicador "En línea" si hay usuario logeado
 function updateNavbarUser() {
     const wrap = document.getElementById('navbar-user-wrap');
@@ -1199,10 +1206,6 @@ function updateNavbarUser() {
     var joinCodeSection = document.getElementById('join-by-code-section');
     if (joinCodeSection) {
         joinCodeSection.style.display = (currentUser && currentUserType === 'estudiante') ? 'block' : 'none';
-    }
-    var footerAdminSecret = document.getElementById('footer-admin-secret');
-    if (footerAdminSecret) {
-        footerAdminSecret.style.display = (currentUserType === 'estudiante') ? 'none' : 'inline-flex';
     }
     var navMisResultados = document.getElementById('btn-mis-resultados-nav');
     if (navMisResultados) {
@@ -1608,6 +1611,11 @@ function showScreen(screenId) {
         }
 
         if (screenId === 'profesor-panel' && currentUserType !== 'profesor') {
+            showNotification('No tienes acceso a esta sección', 'warning');
+            showScreen('inicio-screen');
+            return false;
+        }
+        if (screenId === 'admin-panel' && currentUserType !== 'admin') {
             showNotification('No tienes acceso a esta sección', 'warning');
             showScreen('inicio-screen');
             return false;
@@ -2939,45 +2947,34 @@ function openForgotPasswordModal() {
     });
 }
 
+// Abrir el panel de administración con la sesión activa
+async function openAdminPanel() {
+    isAdmin = true;
+    currentUserType = 'admin';
+    updateNavbarUser();
+    const shown = showScreen('admin-panel');
+    const adminSidebar = document.getElementById('admin-sidebar');
+    if (adminSidebar) adminSidebar.style.display = 'block';
+    if (!shown) return false;
+    await refreshAdminData();
+    loadAdminPanel();
+    return true;
+}
+
 // Manejar login de admin
 async function handleAdminLogin() {
-    {
-        try {
-            const data = await LinguizateAPI.post('/auth/login', {
-                identifier: document.getElementById('admin-username').value,
-                password: document.getElementById('admin-password').value,
-                role: 'admin'
-            });
-            isAdmin = true;
-            currentUserType = 'admin';
-            currentUser = data.user;
-            currentProfesor = null;
-            updateNavbarUser();
-            showScreen('admin-panel');
-            const adminSidebarApi = document.getElementById('admin-sidebar');
-            if (adminSidebarApi) adminSidebarApi.style.display = 'block';
-            await refreshAdminData();
-            loadAdminPanel();
-        } catch (error) {
-            showNotification(error.message || 'Credenciales de administrador incorrectas', 'error');
-        }
-        return;
-    }
-    const username = document.getElementById('admin-username').value;
-    const password = document.getElementById('admin-password').value;
-
-    if (username === 'admin' && password === 'admin123') {
-        isAdmin = true;
-        currentUserType = 'admin';
-        currentUser = null;
+    try {
+        const data = await LinguizateAPI.post('/auth/login', {
+            identifier: document.getElementById('admin-username').value,
+            password: document.getElementById('admin-password').value,
+            role: 'admin'
+        });
+        currentUser = data.user;
         currentProfesor = null;
-        updateNavbarUser();
-        showScreen('admin-panel');
-        const adminSidebar = document.getElementById('admin-sidebar');
-        if (adminSidebar) adminSidebar.style.display = 'block';
-        loadAdminPanel();
-    } else {
-        showNotification('Credenciales de administrador incorrectas', 'error');
+        navigateToAppRoute('/administracion', 'admin-panel');
+        await openAdminPanel();
+    } catch (error) {
+        showNotification(error.message || 'Credenciales de administrador incorrectas', 'error');
     }
 }
 
@@ -2989,6 +2986,9 @@ function logoutAdmin() {
     showNotification('Sesión cerrada', 'success');
     const adminSidebar = document.getElementById('admin-sidebar');
     if (adminSidebar) adminSidebar.style.display = 'none';
+    try {
+        window.history.pushState({ screenId: 'inicio-screen' }, '', '/');
+    } catch (e) { }
     showScreen('inicio-screen');
 }
 

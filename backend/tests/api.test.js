@@ -44,6 +44,22 @@ test('flujo integrado de catálogo, roles, clases y partidas idempotentes', asyn
   assert.equal(professorLogin.response.status, 200);
   const professorCookie = professorLogin.cookie.split(';')[0];
 
+  const chatUsage = await json('/api/chat/usage', { headers: { Cookie: studentCookie } });
+  assert.equal(chatUsage.response.status, 200);
+  assert.deepEqual(
+    { limit: chatUsage.data.limit, used: chatUsage.data.used, remaining: chatUsage.data.remaining },
+    { limit: 10, used: 0, remaining: 10 }
+  );
+
+  const professorChatUsage = await json('/api/chat/usage', { headers: { Cookie: professorCookie } });
+  assert.equal(professorChatUsage.response.status, 403);
+
+  const anonymousChat = await json('/api/chat', {
+    method: 'POST',
+    body: JSON.stringify({ userMessage: '¿Qué es un fonema?' })
+  });
+  assert.equal(anonymousChat.response.status, 401);
+
   const createdCategory = await json('/api/professor/categories', {
     method: 'POST', headers: { Cookie: professorCookie },
     body: JSON.stringify({ name: 'Categoría de prueba', description: 'Prueba integrada' })
@@ -87,19 +103,46 @@ test('flujo integrado de catálogo, roles, clases y partidas idempotentes', asyn
   });
   assert.equal(firstGame.response.status, 201);
   assert.equal(firstGame.data.user.score, before + 100);
+  assert.equal(firstGame.data.game.bestStreak, 1);
   const duplicate = await json('/api/games', {
     method: 'POST', headers: { Cookie: studentCookie }, body: JSON.stringify(payload)
   });
   assert.equal(duplicate.response.status, 200);
   assert.equal(duplicate.data.duplicate, true);
 
+  const history = await json('/api/users/me/games', { headers: { Cookie: studentCookie } });
+  assert.equal(history.response.status, 200);
+  assert.equal(history.data.games[0].categoryId, categoryId);
+  assert.equal(history.data.games[0].bestStreak, 1);
+
+  const progress = await json('/api/users/me/progress', { headers: { Cookie: studentCookie } });
+  assert.equal(progress.response.status, 200);
+  assert.equal(progress.data.summary.gamesPlayed, 1);
+  assert.equal(progress.data.dimensions[0].categoryId, categoryId);
+
+  const imported = await json(`/api/professor/categories/${categoryId}/questions/import`, {
+    method: 'POST', headers: { Cookie: professorCookie },
+    body: JSON.stringify({ questions: [{ question: 'Pregunta importada', options: ['a', 'b', 'c', 'd'], correct: 2, difficulty: 'medio', explanation: 'c' }] })
+  });
+  assert.equal(imported.response.status, 201);
+  assert.equal(imported.data.created, 1);
+
   const removed = await json(`/api/professor/categories/${categoryId}`, {
     method: 'DELETE', headers: { Cookie: professorCookie }
   });
-  assert.equal(removed.response.status, 204);
+  assert.equal(removed.response.status, 405);
+  assert.equal(removed.data.code, 'DELETE_DISABLED');
 
   const internal = await fetch(base + '/backend/db.js');
   assert.equal((await internal.text()).includes("require('better-sqlite3')"), false);
+});
+
+test('la ruta /administracion sirve la SPA de administración', async () => {
+  const response = await fetch(base + '/administracion');
+  assert.equal(response.status, 200);
+  assert.equal(response.headers.get('x-robots-tag'), 'noindex');
+  const html = await response.text();
+  assert.match(html, /id="admin-screen"/);
 });
 
 test.after(() => {

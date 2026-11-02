@@ -19,27 +19,39 @@ La variable `OPENAI_API_KEY` de `backend/.env` es opcional y solo se necesita pa
 
 | Rol | Acceso | Usuario | Contraseña |
 |---|---|---|---|
-| Estudiante | Iniciar sesión | `estudiante@linguizate.com` | `estudiante123` |
-| Profesor | Iniciar sesión | `profesor@linguizate.com` | `profesor123` |
-| Administrador | Botón Administrador | `admin` | `admin123` |
+| Estudiante | `/login` o botón superior | `estudiante@linguizate.com` | `estudiante123` |
+| Profesor | `/login` o botón superior | `profesor@linguizate.com` | `profesor123` |
+| Administrador | `/administracion` | `admin` | `admin123` |
+
+## Rutas principales de la aplicación
+
+- **`/`**: Inicio y selector de modalidad (Clásico con tiempo vs Estudio).
+- **`/categorias`**: Catálogo de las 8 disciplinas y 28 subcategorías.
+- **`/juego`**: Motor de trivia interactivo y tutor con IA.
+- **`/resultados`**: Estadísticas post-juego y medallas de partida.
+- **`/ranking`**: Tabla de clasificación general.
+- **`/biblioteca`**: Acceso a categorías y clases privadas mediante código.
+- **`/progresos`**: Historial personal de partidas, nivel XP y radar de habilidades.
+- **`/profesor`**: Panel de gestión docente para crear categorías, códigos y reportes.
+- **`/administracion`**: Panel administrativo de moderación, preguntas y usuarios.
 
 ## Formas de acceso
 
 ### Invitado
 
-Puede jugar y consultar el ranking. La partida no se asocia a un perfil.
+Puede jugar libremente cualquiera de las categorías (`/categorias`) y consultar el ranking (`/ranking`). La partida se ejecuta localmente sin asociarse a un usuario registrado.
 
 ### Estudiante
 
-Puede jugar, consultar el ranking y conservar en el servidor su puntuación, historial y progreso. También puede unirse a una categoría privada mediante el código entregado por un profesor.
+Inicia sesión desde `/login`. Conserva en el servidor su puntuación, historial de partidas, nivel XP y radar de habilidades (`/progresos`). También puede unirse a categorías privadas introduciendo el código de 6 caracteres entregado por su docente (`/biblioteca`).
 
 ### Profesor
 
-Accede a su panel para crear, editar y eliminar categorías privadas y preguntas. Cada categoría genera un código de acceso para estudiantes y queda disponible inmediatamente para su propietario.
+Inicia sesión desde `/login`. Accede a su panel docente en `/profesor` para crear categorías privadas, gestionar preguntas, generar códigos de acceso para sus clases e importar cuestionarios masivos desde Excel (`.xlsx`).
 
 ### Administrador
 
-Accede desde el botón **Administrador**. Puede consultar métricas y usuarios, mantener las preguntas del sistema y aprobar, rechazar o eliminar categorías de profesores.
+Accede desde **http://localhost:3000/administracion**. Puede consultar métricas globales, auditar usuarios y su historial de juego, mantener el banco maestro de preguntas y moderar categorías creadas por profesores.
 
 ## Chat con IA
 

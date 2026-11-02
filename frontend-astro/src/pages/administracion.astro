@@ -1,0 +1,94 @@
+---
+import AppLayout from '../layouts/AppLayout.astro';
+import AdminList from '../components/common/AdminList.astro';
+import TextInput from '../components/ui/TextInput.astro';
+---
+<AppLayout title="Administración - Lingüízate" showBack backUrl="/">
+  <!-- Pantalla de Login de Administrador -->
+  <div id="admin-screen" class="container" style="max-width: 480px; padding: 60px 16px;">
+    <form id="admin-login-form" novalidate class="auth-card" style="background: var(--bg-primary); border-radius: var(--border-radius); border: 1px solid var(--border-color); padding: 32px; box-shadow: var(--shadow-md);">
+      <div style="text-align: center; margin-bottom: 20px;">
+        <i class="fas fa-shield-alt fa-3x" style="color: var(--primary-color);"></i>
+        <h2 style="font-size: 1.8rem; margin-top: 12px;">Acceso Administrador</h2>
+        <p class="text-secondary" style="font-size: 0.95rem;">Panel de control y moderación del sistema</p>
+      </div>
+
+      <div class="form-group" style="margin-bottom: 16px;">
+        <TextInput id="admin-user" label="Usuario" placeholder="admin" value="admin" autocomplete="username" />
+      </div>
+
+      <div class="form-group" style="margin-bottom: 24px;">
+        <TextInput id="admin-pwd" label="Contraseña" type="password" placeholder="Contraseña" autocomplete="current-password" />
+      </div>
+
+      <button type="submit" id="btn-admin-submit" class="btn-primary" style="width: 100%; justify-content: center; padding: 12px;">
+        <i class="fas fa-key"></i> Iniciar Sesión Administrador
+      </button>
+
+      <p id="admin-login-msg" style="display: none; margin-top: 14px; text-align: center; font-weight: 500; color: var(--error-color);" aria-live="polite"></p>
+    </form>
+  </div>
+
+  <!-- Panel de Control del Administrador -->
+  <div id="admin-panel-wrap" class="container admin-panel-wrap" style="display: none;">
+    <header style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; flex-wrap: wrap; gap: 14px;">
+      <div>
+        <h2 style="font-size: 2.2rem; margin-bottom: 4px;">
+          <i class="fas fa-tools" style="color: var(--primary-color); margin-right: 10px;"></i>
+          Panel de Administración
+        </h2>
+        <p class="text-secondary">Gestión de usuarios, métricas, preguntas y moderación de contenido</p>
+      </div>
+      <button type="button" id="btn-admin-logout" class="btn-secondary">
+        <i class="fas fa-sign-out-alt"></i> Salir del Panel
+      </button>
+    </header>
+
+    <div class="admin-workspace">
+    <div class="admin-workspace-content">
+
+    <!-- Contenido 1: Dashboard Global -->
+    <div id="admin-sec-dashboard" class="admin-tab-content">
+      <div style="display:flex; justify-content:flex-end; margin-bottom:14px;">
+        <button type="button" id="btn-export-research" class="btn-secondary">
+          <i class="fas fa-file-excel"></i> Exportar Excel de investigación
+        </button>
+      </div>
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px; margin-bottom: 30px;">
+        <div class="card" style="background: var(--bg-primary); padding: 20px; border-radius: var(--border-radius); border: 1px solid var(--border-color);">
+          <span class="text-secondary" style="font-size: 0.9rem;">Total Usuarios</span>
+          <h3 id="stat-total-users" style="font-size: 2rem; color: var(--primary-color); margin-top: 6px;" aria-live="polite">
+            <span class="skeleton-inline" aria-hidden="true" style="width:3rem; height:2rem; display:inline-block;"></span>
+          </h3>
+        </div>
+        <div class="card" style="background: var(--bg-primary); padding: 20px; border-radius: var(--border-radius); border: 1px solid var(--border-color);">
+          <span class="text-secondary" style="font-size: 0.9rem;">Total Preguntas del Sistema</span>
+          <h3 id="stat-total-questions" style="font-size: 2rem; color: var(--success-color); margin-top: 6px;" aria-live="polite">
+            <span class="skeleton-inline" aria-hidden="true" style="width:3rem; height:2rem; display:inline-block;"></span>
+          </h3>
+        </div>
+        <div class="card" style="background: var(--bg-primary); padding: 20px; border-radius: var(--border-radius); border: 1px solid var(--border-color);">
+          <span class="text-secondary" style="font-size: 0.9rem;">Categorías Activas</span>
+          <h3 id="stat-total-categories" style="font-size: 2rem; color: var(--accent-color); margin-top: 6px;" aria-live="polite">
+            <span class="skeleton-inline" aria-hidden="true" style="width:3rem; height:2rem; display:inline-block;"></span>
+          </h3>
+        </div>
+      </div>
+    </div>
+
+    <div id="admin-sec-users" class="admin-tab-content" style="display: none;">
+      <AdminList id="users" title="Usuarios" columns={['ID', 'Nombre', 'Correo', 'Rol', 'Puntos', 'Partidas']} numericSort />
+    </div>
+    <div id="admin-sec-questions" class="admin-tab-content" style="display: none;">
+      <AdminList id="questions" title="Preguntas" columns={['ID', 'Pregunta', 'Dificultad', 'Subcategoría']} />
+    </div>
+    <div id="admin-sec-categories" class="admin-tab-content" style="display: none;">
+      <AdminList id="categories" title="Categorías" columns={['ID', 'Nombre', 'Tipo', 'Código', 'Estado', 'Acciones']} />
+    </div>
+    </div>
+    </div>
+  </div>
+</AppLayout>
+<script>
+  import '../scripts/admin';
+</script>

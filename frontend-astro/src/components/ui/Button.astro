@@ -1,0 +1,5 @@
+---
+interface Props { variant?: 'primary' | 'secondary' | 'quiet'; type?: 'button' | 'submit' | 'reset'; disabled?: boolean; class?: string; }
+const { variant = 'primary', type = 'button', disabled = false, class: className = '' } = Astro.props;
+---
+<button class:list={['ui-button', `ui-button--${variant}`, className]} type={type} disabled={disabled}><slot /></button>

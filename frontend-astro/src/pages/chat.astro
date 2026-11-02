@@ -1,0 +1,47 @@
+---
+import AppLayout from '../layouts/AppLayout.astro';
+---
+
+<AppLayout title="Tutor de Lingüística IA - Lingüízate">
+  <section class="chat-page" id="chat-page" hidden>
+    <header class="chat-header"><div><h1><i class="fas fa-robot"></i> Tutor de Lingüística IA</h1><p>Idiomas, gramática, traducción, escritura y temas del juego.</p></div><small id="usage" aria-live="polite"></small></header>
+    <main class="chat-messages" id="messages" aria-live="polite"><div class="chat-empty">¡Hola! Puedo ayudarte con lingüística, idiomas, gramática, traducción y escritura.</div></main>
+    <form class="chat-composer" id="composer"><textarea id="input" rows="1" maxlength="4000" placeholder="Escribe tu pregunta..." aria-label="Mensaje para el tutor"></textarea><button class="btn-primary" id="send" aria-label="Enviar"><i class="fas fa-paper-plane"></i></button></form>
+    <p class="chat-hint">Enter envía · Mayús + Enter crea otra línea</p>
+  </section>
+</AppLayout>
+
+<style>
+  .chat-page { width:min(900px, calc(100% - 2rem)); min-height:calc(100vh - 100px); margin:1rem auto; display:grid; grid-template-rows:auto 1fr auto auto; gap:.8rem; }
+  .chat-header { display:flex; justify-content:space-between; align-items:start; gap:1rem; padding:1rem 1.25rem; border-radius:1rem; background:var(--card-bg, #fff); box-shadow:0 3px 18px rgba(37,45,80,.08); }
+  .chat-header h1 { margin:0; font-size:1.25rem; }.chat-header p,.chat-hint { margin:.35rem 0 0; color:var(--text-secondary, #64748b); font-size:.86rem; }
+  .chat-messages { min-height:360px; display:flex; flex-direction:column; gap:.85rem; padding:1.25rem; overflow:auto; border-radius:1rem; background:var(--card-bg, #fff); box-shadow:0 3px 18px rgba(37,45,80,.08); }
+  .chat-empty { color:var(--text-secondary, #64748b); margin:auto; text-align:center; }.bubble { max-width:80%; padding:.75rem 1rem; border-radius:1rem; line-height:1.55; white-space:pre-wrap; }.bubble.user { align-self:end; color:#fff; background:var(--primary-color, #635bff); border-bottom-right-radius:.2rem; }.bubble.assistant { align-self:start; background:#f1f5f9; color:#182236; border-bottom-left-radius:.2rem; }.typing { opacity:.7; font-style:italic; }
+  .chat-composer { display:flex; align-items:end; gap:.65rem; padding:.65rem; border-radius:1rem; background:var(--card-bg, #fff); box-shadow:0 3px 18px rgba(37,45,80,.08); }.chat-composer textarea { flex:1; resize:none; max-height:7.6rem; min-height:2.75rem; border:0; outline:0; padding:.65rem; font:inherit; line-height:1.45; background:transparent; }.chat-composer button { width:2.75rem; height:2.75rem; border-radius:.75rem; padding:0; }
+  @media (max-width:600px) { .chat-page { width:calc(100% - 1rem); margin:.5rem auto; }.chat-header { padding:.85rem; }.bubble { max-width:90%; } }
+</style>
+
+<script>
+  import { navigate } from 'astro:transitions/client';
+  import { api, streamChat, type ChatUsage } from '../scripts/api';
+  import { fetchCurrentSession } from '../scripts/store';
+  const page = document.querySelector<HTMLElement>('#chat-page')!;
+  const messages = document.querySelector<HTMLElement>('#messages')!;
+  const input = document.querySelector<HTMLTextAreaElement>('#input')!;
+  const form = document.querySelector<HTMLFormElement>('#composer')!;
+  const send = document.querySelector<HTMLButtonElement>('#send')!;
+  const usage = document.querySelector<HTMLElement>('#usage')!;
+  const history: Array<{ role: string; content: string }> = [];
+  function updateUsage(data: ChatUsage) { usage.textContent = `${data.remaining} de ${data.limit} preguntas disponibles hoy`; }
+  function bubble(role: 'user' | 'assistant', text = '') { const node = document.createElement('div'); node.className = `bubble ${role}`; node.textContent = text; messages.append(node); messages.scrollTop = messages.scrollHeight; return node; }
+  function resize() { input.style.height = 'auto'; input.style.height = `${Math.min(input.scrollHeight, 122)}px`; }
+  async function start() { const user = await fetchCurrentSession(); if (!user) return navigate('/login'); if (!user.emailVerified) return navigate('/verificar-correo'); page.hidden = false; try { updateUsage(await api.get<ChatUsage>('/chat/usage')); } catch (error: any) { if (error?.code === 'EMAIL_NOT_VERIFIED') navigate('/verificar-correo'); } }
+  input.addEventListener('input', resize);
+  input.addEventListener('keydown', (event) => { if (event.key === 'Enter' && !event.shiftKey) { event.preventDefault(); form.requestSubmit(); } });
+  form.addEventListener('submit', async (event) => { event.preventDefault(); const text = input.value.trim(); if (!text || send.disabled) return; bubble('user', text); input.value = ''; resize(); send.disabled = true; const answer = bubble('assistant', 'Escribiendo…'); answer.classList.add('typing'); let reply = '';
+    try { await streamChat({ message: text, history }, { onUsage: updateUsage, onDelta(delta) { reply += delta; answer.textContent = reply; answer.classList.remove('typing'); messages.scrollTop = messages.scrollHeight; } }); history.push({ role: 'user', content: text }, { role: 'assistant', content: reply }); if (!reply) answer.textContent = 'No recibí una respuesta. Intenta otra vez.'; }
+    catch (error: any) { answer.classList.remove('typing'); answer.textContent = error?.message || 'El tutor no pudo responder. Intenta otra vez.'; if (error?.code === 'EMAIL_NOT_VERIFIED') navigate('/verificar-correo'); }
+    finally { send.disabled = false; input.focus(); }
+  });
+  start();
+</script>

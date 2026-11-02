@@ -19,6 +19,9 @@ npm run import:local -- "C:\ruta\respaldo.json"
 - `DB_PATH`: ruta alternativa de SQLite, utilizada principalmente por pruebas.
 - `GROQ_API_KEY` / `GROQ_MODEL`: proveedor preferido para el chat.
 - `OPENAI_API_KEY` / `OPENAI_MODEL`: proveedor alternativo.
+- `AI_PROVIDER`: `groq` u `openai`; omitir para elegir la primera clave disponible.
+- `CHAT_DAILY_LIMIT`: preguntas diarias por estudiante; por defecto `10`.
+- `CHAT_TIMEZONE_OFFSET_MINUTES`: desfase usado para renovar la cuota; Bolivia usa `-240`.
 
 La sesión se guarda en una cookie `HttpOnly`, `SameSite=Lax`; en producción también usa `Secure`.
 
@@ -30,6 +33,6 @@ La sesión se guarda en una cookie `HttpOnly`, `SameSite=Lax`; en producción ta
 - Clase privada: `/api/classes/join`.
 - Profesor: `/api/professor/categories`, preguntas y estadísticas.
 - Administrador: `/api/admin/users`, categorías y preguntas.
-- IA: `/api/chat`.
+- IA para estudiantes: `/api/chat` transmite NDJSON progresivo y `/api/chat/usage` informa la cuota.
 
 Los endpoints de escritura verifican sesión, rol y propiedad del recurso. `clientGameId` hace idempotente el registro de una partida.

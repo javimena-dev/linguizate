@@ -1,0 +1,8 @@
+---
+import FormField from './FormField.astro';
+interface Props { id: string; label: string; accept?: string; hint?: string; required?: boolean; }
+const { id, label, accept, hint, required = false } = Astro.props;
+---
+<FormField id={id} label={label} hint={hint} required={required}>
+  <input class="ui-file" id={id} name={id} type="file" accept={accept} required={required} />
+</FormField>

@@ -1982,24 +1982,6 @@ button,
     color: var(--primary-color);
 }
 
-/* Acceso secreto al Admin: icono discreto (solo para quien conozca la ruta) */
-.footer-admin-secret {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 20px;
-    height: 20px;
-    opacity: 0.2;
-    color: var(--text-muted);
-    cursor: pointer;
-    transition: opacity 0.2s ease;
-    font-size: 10px;
-}
-
-.footer-admin-secret:hover {
-    opacity: 0.5;
-}
-
 /* Unirse con cÃƒÂ³digo (Home) */
 .join-by-code-section {
     width: 100%;

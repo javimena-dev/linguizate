@@ -14,9 +14,9 @@ La IA ya está integrada en el código. Solo tienes que **añadir una clave de A
 GROQ_API_KEY=gsk_tu_clave_aqui
 ```
 
-4. Reinicia el servidor (`npm start` en `backend`). El chat usará Groq (modelo `llama-3.1-8b-instant` por defecto).
+4. Reinicia el servidor (`npm start` en `backend`). El chat usará Groq (modelo `openai/gpt-oss-20b` por defecto).
 
-Opcional: para otro modelo de Groq, añade `GROQ_MODEL=mixtral-8x7b-32768` (o el que prefieras).
+Opcional: define `GROQ_MODEL` con un modelo que aparezca actualmente en tu cuenta de Groq.
 
 ---
 
@@ -60,23 +60,23 @@ cd backend
 npm start
 ```
 
-3. Deberías ver en la consola algo como: **"Chat con IA activo (OPENAI_API_KEY configurada)."**
+3. Deberías ver en la consola **"Chat con IA activo (Groq)."** o **"Chat con IA activo (OpenAI)."**
 
 ---
 
 ## Paso 4: Probar en la app
 
-1. Abre **http://localhost:3000** en el navegador.
+1. En desarrollo, abre **http://localhost:4321**. Astro redirige `/api` a **http://localhost:3000**.
 2. Juega una pregunta, mira la explicación y pulsa **"Chatear con la IA"**.
-3. Escribe una pregunta (por ejemplo: "¿Puedes darme un ejemplo más?") y envía.  
+3. Inicia sesión como estudiante. Escribe una pregunta (por ejemplo: "¿Puedes darme un ejemplo más?") y envía.  
    La IA debería responder en español usando el contexto de la pregunta y la explicación.
 
 ---
 
 ## Si algo falla
 
-- **"Configura OPENAI_API_KEY..."**  
-  El archivo `.env` no existe, está en otra carpeta o la variable se llama distinto. Debe ser exactamente `OPENAI_API_KEY` y el archivo `.env` dentro de `backend`.
+- **"El chat con IA no está configurado."**  
+  Define `GROQ_API_KEY` o `OPENAI_API_KEY` en `backend/.env` y reinicia el backend.
 
 - **"Error al conectar con la IA" / 401**  
   La clave es incorrecta o está mal pegada. Crea una nueva en OpenAI y actualiza `.env`.
@@ -85,7 +85,7 @@ npm start
   Has superado el límite de uso de tu cuenta OpenAI. Espera un rato o revisa tu plan en platform.openai.com.
 
 - **La IA no responde o tarda mucho**  
-  Comprueba que el backend esté en marcha y que abras la app en **http://localhost:3000** (no en otro puerto como 8000).
+  Comprueba `http://localhost:3000/api/health`. El chat muestra los fragmentos conforme llegan.
 
 ---
 

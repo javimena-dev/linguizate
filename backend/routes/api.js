@@ -31,6 +31,16 @@ function categoryDto(row, includeQuestions = false) {
   return base;
 }
 
+function gameDto(game) {
+  return {
+    id: game.id, clientGameId: game.client_game_id, categoryId: game.category_id, subcategoryId: game.subcategory_id,
+    categoryName: game.category_name, subcategoryName: game.subcategory_name, mode: game.mode, score: game.score,
+    correctAnswers: game.correct_answers, incorrectAnswers: game.incorrect_answers,
+    bestStreak: game.best_streak || game.correct_answers, avgResponseTimeSeconds: game.avg_response_seconds,
+    date: game.played_at
+  };
+}
+
 router.get('/catalog', (_req, res) => res.json({ categories: getCatalog() }));
 router.get('/subcategories/:id/questions', (req, res) => {
   const subcategory = db.prepare(`SELECT s.id,c.kind
@@ -62,13 +72,37 @@ router.post('/classes/join', ...requireRole('estudiante'), (req, res) => {
 
 router.get('/users/me/games', requireAuth, (req, res) => {
   const games = db.prepare('SELECT * FROM games WHERE user_id=? ORDER BY played_at DESC').all(req.user.id).map((g) => ({
-    id: g.id, categoryName: g.category_name, subcategoryName: g.subcategory_name, score: g.score,
-    date: g.played_at, totalQuestions: g.correct_answers + g.incorrect_answers,
-    correctAnswers: g.correct_answers, incorrectAnswers: g.incorrect_answers,
-    bestStreak: g.correct_answers, avgResponseTimeSeconds: g.avg_response_seconds,
+    ...gameDto(g), totalQuestions: g.correct_answers + g.incorrect_answers,
     questionResults: db.prepare('SELECT question_id questionId,is_correct isCorrect,response_time_seconds responseTimeSeconds FROM question_attempts WHERE game_id=?').all(g.id)
   }));
   res.json({ games });
+});
+
+router.get('/users/me/progress', requireAuth, (req, res) => {
+  const user = db.prepare('SELECT * FROM users WHERE id=?').get(req.user.id);
+  const totals = db.prepare(`SELECT COUNT(*) games, COALESCE(SUM(correct_answers),0) correct,
+    COALESCE(SUM(correct_answers + incorrect_answers),0) answers, COALESCE(MAX(best_streak),0) best_streak
+    FROM games WHERE user_id=?`).get(req.user.id);
+  const dimensions = db.prepare(`SELECT COALESCE(g.category_id,'unknown') category_id,
+    g.category_name label, COALESCE(SUM(g.correct_answers),0) correct,
+    COALESCE(SUM(g.correct_answers + g.incorrect_answers),0) total
+    FROM games g WHERE g.user_id=? GROUP BY g.category_id,g.category_name ORDER BY label`).all(req.user.id)
+    .map((row) => ({
+      categoryId: row.category_id, label: row.label, correct: row.correct, total: row.total,
+      accuracy: row.total ? Math.round((row.correct / row.total) * 100) : 0
+    }));
+  const accuracy = totals.answers ? Math.round((totals.correct / totals.answers) * 100) : 0;
+  const achievements = [
+    ...(totals.games >= 1 ? ['Primer paso'] : []),
+    ...(accuracy >= 80 && totals.answers >= 10 ? ['Precisión de oro'] : []),
+    ...(totals.best_streak >= 5 ? ['Racha lingüística'] : []),
+    ...(user.score >= 1000 ? ['Mil puntos'] : [])
+  ];
+  res.json({
+    summary: { score: user.score, gamesPlayed: totals.games, correctAnswers: totals.correct,
+      totalAnswers: totals.answers, accuracy, bestStreak: totals.best_streak },
+    dimensions, achievements
+  });
 });
 
 router.post('/games', requireAuth, (req, res) => {
@@ -77,11 +111,13 @@ router.post('/games', requireAuth, (req, res) => {
     return fail(res, 400, 'Partida incompleta', 'INVALID_GAME');
   }
   const existing = db.prepare('SELECT * FROM games WHERE client_game_id=?').get(body.clientGameId);
-  if (existing) return res.json({ game: existing, user: req.user, duplicate: true });
+  if (existing) return res.json({ game: gameDto(existing), user: req.user, duplicate: true });
   const mode = body.mode === 'estudio' ? 'estudio' : 'clasico';
   let score = 0;
   let correct = 0;
   let incorrect = 0;
+  let currentStreak = 0;
+  let bestStreak = 0;
   let totalTime = 0;
   const seenQuestions = new Set();
   const attempts = body.attempts.map((attempt) => {
@@ -94,10 +130,15 @@ router.post('/games', requireAuth, (req, res) => {
     const isCorrect = Boolean(question && validSelection && !duplicateQuestion && selectedIndex === question.correct_index);
     if (isCorrect) {
       correct += 1;
+      currentStreak += 1;
+      bestStreak = Math.max(bestStreak, currentStreak);
       const multiplier = question.difficulty === 'dificil' ? 2 : question.difficulty === 'medio' ? 1.5 : 1;
       const bonus = mode === 'clasico' ? Math.max(0, 30 - responseTime) * 10 : 0;
       score += Math.round((100 + bonus) * multiplier);
-    } else incorrect += 1;
+    } else {
+      incorrect += 1;
+      currentStreak = 0;
+    }
     totalTime += responseTime;
     return { questionId: attempt.questionId, isCorrect, responseTime };
   });
@@ -106,11 +147,11 @@ router.post('/games', requireAuth, (req, res) => {
   const subcategory = db.prepare('SELECT name FROM subcategories WHERE id=?').get(body.subcategoryId);
   const transaction = db.transaction(() => {
     const result = db.prepare(`INSERT INTO games
-      (client_game_id,user_id,category_id,subcategory_id,category_name,subcategory_name,mode,score,correct_answers,incorrect_answers,avg_response_seconds,played_at)
-      VALUES (?,?,?,?,?,?,?,?,?,?,?,?)`).run(
+      (client_game_id,user_id,category_id,subcategory_id,category_name,subcategory_name,mode,score,correct_answers,incorrect_answers,best_streak,avg_response_seconds,played_at)
+      VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)`).run(
         body.clientGameId, req.user.id, body.categoryId || null, body.subcategoryId || null,
         category?.name || body.categoryName || '-', subcategory?.name || body.subcategoryName || '-',
-        mode, score, correct, incorrect, avg, body.playedAt || new Date().toISOString()
+        mode, score, correct, incorrect, bestStreak, avg, body.playedAt || new Date().toISOString()
       );
     const insertAttempt = db.prepare('INSERT INTO question_attempts (game_id,question_id,is_correct,response_time_seconds) VALUES (?,?,?,?)');
     attempts.forEach((a) => insertAttempt.run(result.lastInsertRowid, a.questionId || null, a.isCorrect ? 1 : 0, a.responseTime));
@@ -118,7 +159,7 @@ router.post('/games', requireAuth, (req, res) => {
     return result.lastInsertRowid;
   });
   const gameId = transaction();
-  res.status(201).json({ game: db.prepare('SELECT * FROM games WHERE id=?').get(gameId), user: mapUser(db.prepare('SELECT * FROM users WHERE id=?').get(req.user.id)) });
+  res.status(201).json({ game: gameDto(db.prepare('SELECT * FROM games WHERE id=?').get(gameId)), user: mapUser(db.prepare('SELECT * FROM users WHERE id=?').get(req.user.id)) });
 });
 
 router.patch('/users/me', requireAuth, (req, res) => {
@@ -162,11 +203,8 @@ router.patch('/professor/categories/:id', ...requireRole('profesor'), (req, res)
   res.json({ category: categoryDto(db.prepare('SELECT * FROM categories WHERE id=?').get(category.id), true) });
 });
 
-router.delete('/professor/categories/:id', ...requireRole('profesor'), (req, res) => {
-  const result = db.prepare("DELETE FROM categories WHERE id=? AND owner_user_id=? AND kind='professor'").run(req.params.id, req.user.id);
-  if (!result.changes) return fail(res, 404, 'Categoría no encontrada', 'NOT_FOUND');
-  res.status(204).end();
-});
+router.delete('/professor/categories/:id', ...requireRole('profesor'), (_req, res) =>
+  fail(res, 405, 'La eliminación de categorías está deshabilitada', 'DELETE_DISABLED'));
 
 function validateQuestion(body) {
   return body && String(body.question || '').trim() && Array.isArray(body.options) && body.options.length === 4
@@ -185,6 +223,28 @@ router.post('/professor/categories/:id/questions', ...requireRole('profesor'), (
   res.status(201).json({ question: mapQuestion(db.prepare('SELECT * FROM questions WHERE id=?').get(questionId)) });
 });
 
+router.post('/professor/categories/:id/questions/import', ...requireRole('profesor'), (req, res) => {
+  const category = db.prepare("SELECT * FROM categories WHERE id=? AND owner_user_id=? AND kind='professor'").get(req.params.id, req.user.id);
+  if (!category) return fail(res, 404, 'Categoría no encontrada', 'NOT_FOUND');
+  const questions = req.body?.questions;
+  if (!Array.isArray(questions) || !questions.length || questions.length > 250) {
+    return fail(res, 400, 'El lote debe tener entre 1 y 250 preguntas', 'INVALID_IMPORT');
+  }
+  const errors = questions.flatMap((question, index) => validateQuestion(question) ? [] : [{ row: index + 2, message: 'Pregunta inválida' }]);
+  if (errors.length) return res.status(400).json({ error: 'El archivo contiene filas inválidas', code: 'INVALID_IMPORT', errors });
+  const insert = db.prepare(`INSERT INTO questions
+    (id,subcategory_id,owner_user_id,question,options,correct_index,difficulty,explanation,display_order)
+    VALUES (?,?,?,?,?,?,?,?,?)`);
+  db.transaction(() => {
+    let displayOrder = db.prepare('SELECT COUNT(*) n FROM questions WHERE subcategory_id=?').get(category.id).n;
+    questions.forEach((question) => {
+      insert.run(id('prof_q'), category.id, req.user.id, question.question.trim(), JSON.stringify(question.options),
+        Number(question.correct), question.difficulty, String(question.explanation || ''), displayOrder++);
+    });
+  })();
+  res.status(201).json({ created: questions.length, skipped: 0, errors: [] });
+});
+
 router.patch('/professor/questions/:id', ...requireRole('profesor'), (req, res) => {
   const question = db.prepare('SELECT * FROM questions WHERE id=? AND owner_user_id=?').get(req.params.id, req.user.id);
   if (!question) return fail(res, 404, 'Pregunta no encontrada', 'NOT_FOUND');
@@ -197,11 +257,8 @@ router.patch('/professor/questions/:id', ...requireRole('profesor'), (req, res) 
   res.json({ question: mapQuestion(db.prepare('SELECT * FROM questions WHERE id=?').get(question.id)) });
 });
 
-router.delete('/professor/questions/:id', ...requireRole('profesor'), (req, res) => {
-  const result = db.prepare('DELETE FROM questions WHERE id=? AND owner_user_id=?').run(req.params.id, req.user.id);
-  if (!result.changes) return fail(res, 404, 'Pregunta no encontrada', 'NOT_FOUND');
-  res.status(204).end();
-});
+router.delete('/professor/questions/:id', ...requireRole('profesor'), (_req, res) =>
+  fail(res, 405, 'La eliminación de preguntas está deshabilitada', 'DELETE_DISABLED'));
 
 router.get('/professor/statistics', ...requireRole('profesor'), (req, res) => {
   const rows = db.prepare(`SELECT g.*,u.name student_name FROM games g
@@ -228,8 +285,12 @@ router.get('/admin/dashboard', ...requireRole('admin'), (_req, res) => {
     }));
     return user;
   });
-  res.json({ users });
+  const totalUsers = users.filter((u) => u.role !== 'admin').length;
+  const totalQuestions = db.prepare('SELECT COUNT(*) n FROM questions').get().n;
+  const totalCategories = db.prepare("SELECT COUNT(*) n FROM categories WHERE approved=1").get().n;
+  res.json({ users, totalUsers, totalQuestions, totalCategories });
 });
+
 router.get('/admin/categories', ...requireRole('admin'), (_req, res) => {
   res.json({ categories: db.prepare('SELECT * FROM categories ORDER BY kind,display_order,created_at').all().map((row) => categoryDto(row, true)) });
 });
@@ -239,15 +300,19 @@ router.patch('/admin/categories/:id/approval', ...requireRole('admin'), (req, re
   if (!row) return fail(res, 404, 'Categoría no encontrada', 'NOT_FOUND');
   res.json({ category: categoryDto(row, true) });
 });
-router.delete('/admin/professor-categories/:id', ...requireRole('admin'), (req, res) => {
-  const result = db.prepare("DELETE FROM categories WHERE id=? AND kind='professor'").run(req.params.id);
-  if (!result.changes) return fail(res, 404, 'Categoría no encontrada', 'NOT_FOUND');
-  res.status(204).end();
-});
+router.delete('/admin/professor-categories/:id', ...requireRole('admin'), (_req, res) =>
+  fail(res, 405, 'La eliminación de categorías está deshabilitada', 'DELETE_DISABLED'));
 
 router.get('/admin/questions', ...requireRole('admin'), (_req, res) => {
-  const rows = db.prepare('SELECT * FROM questions ORDER BY subcategory_id,display_order,id').all();
-  res.json({ questions: rows.map((row) => ({ ...mapQuestion(row), subcategoryId: row.subcategory_id })) });
+  const rows = db.prepare(`SELECT q.*, s.name subcategory_name, c.name category_name,
+    COUNT(a.id) attempts, COALESCE(SUM(a.is_correct),0) correct_attempts
+    FROM questions q JOIN subcategories s ON s.id=q.subcategory_id
+    JOIN categories c ON c.id=s.category_id LEFT JOIN question_attempts a ON a.question_id=q.id
+    GROUP BY q.id ORDER BY q.subcategory_id,q.display_order,q.id`).all();
+  res.json({ questions: rows.map((row) => ({ ...mapQuestion(row), subcategoryId: row.subcategory_id,
+    subcategoryName: row.subcategory_name, categoryName: row.category_name,
+    attemptCount: row.attempts, correctCount: row.correct_attempts,
+    accuracyPercent: row.attempts ? Math.round((row.correct_attempts / row.attempts) * 100) : null })) });
 });
 router.post('/admin/questions', ...requireRole('admin'), (req, res) => {
   if (!validateQuestion(req.body) || !db.prepare('SELECT 1 FROM subcategories WHERE id=?').get(req.body.subcategoryId)) {
@@ -266,10 +331,7 @@ router.patch('/admin/questions/:id', ...requireRole('admin'), (req, res) => {
   if (!result.changes) return fail(res, 404, 'Pregunta no encontrada', 'NOT_FOUND');
   res.json({ question: mapQuestion(db.prepare('SELECT * FROM questions WHERE id=?').get(req.params.id)) });
 });
-router.delete('/admin/questions/:id', ...requireRole('admin'), (req, res) => {
-  const result = db.prepare('DELETE FROM questions WHERE id=?').run(req.params.id);
-  if (!result.changes) return fail(res, 404, 'Pregunta no encontrada', 'NOT_FOUND');
-  res.status(204).end();
-});
+router.delete('/admin/questions/:id', ...requireRole('admin'), (_req, res) =>
+  fail(res, 405, 'La eliminación de preguntas está deshabilitada', 'DELETE_DISABLED'));
 
 module.exports = router;
