@@ -1,0 +1,25 @@
+---
+interface Props {
+  compact?: boolean;
+}
+
+const { compact = false } = Astro.props;
+---
+
+<a class:list={['brand', { compact }]} href="/" aria-label="Lingüízate, inicio">
+  <span class="brand-mark" aria-hidden="true">L</span>
+  <span class="brand-copy">
+    <strong>Lingüízate</strong>
+    {!compact && <small>Aprende con inteligencia</small>}
+  </span>
+</a>
+
+<style>
+  .brand { display:inline-flex; align-items:center; gap:.75rem; color:var(--ink); text-decoration:none; }
+  .brand-mark { width:2.75rem; height:2.75rem; display:grid; place-items:center; border-radius:1rem; color:white; font:800 1.35rem/1 var(--font-display); background:linear-gradient(135deg,var(--violet),var(--coral)); box-shadow:0 10px 25px rgba(109,74,255,.3); transform:rotate(-4deg); }
+  .brand-copy { display:grid; line-height:1.05; }
+  .brand-copy strong { font:800 1.18rem/1 var(--font-display); letter-spacing:-.03em; }
+  .brand-copy small { margin-top:.25rem; color:var(--muted); font-size:.7rem; letter-spacing:.06em; text-transform:uppercase; }
+  .compact .brand-mark { width:2.35rem; height:2.35rem; border-radius:.8rem; }
+  .compact .brand-copy strong { font-size:1.05rem; }
+</style>

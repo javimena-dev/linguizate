@@ -1,0 +1,159 @@
+---
+---
+<button id="sidebar-backdrop" class="sidebar-backdrop" type="button" aria-label="Cerrar menú" hidden></button>
+<aside id="app-sidebar" class="app-sidebar" aria-label="Navegación principal" hidden>
+  <div class="sidebar-header" id="sidebar-academic-header">
+    <h3>Panel de Usuario</h3>
+    <button type="button" id="btn-sidebar-close" class="btn-link sidebar-close-btn" aria-label="Cerrar panel">
+      <i class="fas fa-times"></i>
+    </button>
+  </div>
+
+  <nav class="sidebar-nav" id="sidebar-academic-nav">
+    <a href="/" class="sidebar-item" title="Inicio">
+      <i class="fas fa-home" aria-hidden="true"></i><span>Inicio</span>
+    </a>
+    <a href="/perfil" class="sidebar-item" title="Mi Perfil" data-student-professor>
+      <i class="fas fa-user-circle"></i><span>Mi Perfil</span>
+    </a>
+    <a href="/perfil#avatar" class="sidebar-item" title="Cambiar Avatar" data-student-professor>
+      <i class="fas fa-image"></i><span>Cambiar Avatar</span>
+    </a>
+    <a href="/biblioteca" class="sidebar-item" title="Mi Biblioteca" data-student-only>
+      <i class="fas fa-book"></i><span>Mi Biblioteca</span>
+    </a>
+    <a href="/progresos" class="sidebar-item" title="Mis Progresos" data-student-only>
+      <i class="fas fa-chart-line"></i><span>Mis Progresos</span>
+    </a>
+    <a href="/ranking" class="sidebar-item" title="Ranking Global">
+      <i class="fas fa-trophy"></i><span>Ranking Global</span>
+    </a>
+  </nav>
+
+  <!-- Sección Docente (solo para profesores) -->
+  <section id="sidebar-doc-section" class="sidebar-doc-section" style="display: none;">
+    <div class="sidebar-divider"></div>
+    <div class="sidebar-doc-title">
+      <i class="fas fa-chalkboard-teacher"></i>
+      <span>Gestión Docente</span>
+    </div>
+    <div class="sidebar-doc-actions">
+      <a href="/profesor" class="sidebar-item sidebar-doc-btn" title="Panel Docente">
+        <i class="fas fa-tachometer-alt"></i><span>Panel Docente</span>
+      </a>
+    </div>
+  </section>
+
+  <!-- Sección Administrador (solo para administradores) -->
+  <section id="sidebar-admin-section" class="sidebar-doc-section" style="display: none;">
+    <div class="sidebar-divider"></div>
+    <div class="sidebar-doc-title">
+      <i class="fas fa-shield-alt"></i>
+      <span>Administración</span>
+    </div>
+    <div class="sidebar-doc-actions">
+      <a href="/administracion" class="sidebar-item sidebar-doc-btn" title="Panel Administrativo">
+        <i class="fas fa-cog"></i><span>Panel Administrativo</span>
+      </a>
+      <div class="sidebar-admin-submenu" aria-label="Funciones de administración">
+        <a href="/administracion#dashboard" class="sidebar-item sidebar-admin-subitem" title="Métricas globales"><i class="fas fa-chart-pie" aria-hidden="true"></i><span>Métricas globales</span></a>
+        <a href="/administracion#users" class="sidebar-item sidebar-admin-subitem" title="Usuarios"><i class="fas fa-users" aria-hidden="true"></i><span>Usuarios</span></a>
+        <a href="/administracion#questions" class="sidebar-item sidebar-admin-subitem" title="Preguntas"><i class="fas fa-question-circle" aria-hidden="true"></i><span>Preguntas</span></a>
+        <a href="/administracion#categories" class="sidebar-item sidebar-admin-subitem" title="Categorías"><i class="fas fa-tags" aria-hidden="true"></i><span>Categorías</span></a>
+      </div>
+    </div>
+  </section>
+</aside>
+
+<script>
+  import { $currentUser } from '../../scripts/store';
+
+  function setupSidebar() {
+    const sidebar = document.getElementById('app-sidebar');
+    if (!sidebar || sidebar.dataset.initialized === 'true') return;
+    sidebar.dataset.initialized = 'true';
+    const closeBtn = document.getElementById('btn-sidebar-close');
+    const docSection = document.getElementById('sidebar-doc-section');
+    const adminSection = document.getElementById('sidebar-admin-section');
+    const toggle = document.getElementById('btn-sidebar-toggle');
+    const backdrop = document.getElementById('sidebar-backdrop') as HTMLButtonElement | null;
+    const mobile = window.matchMedia('(max-width: 1024px)');
+    const controller = new AbortController();
+    const studentLinks = sidebar.querySelectorAll<HTMLElement>('[data-student-only]');
+    const profileLinks = sidebar.querySelectorAll<HTMLElement>('[data-student-professor]');
+    let userPresent = false;
+    let expanded = false;
+
+    function render() {
+      document.body.classList.toggle('has-sidebar', userPresent);
+      document.body.classList.toggle('sidebar-expanded', userPresent && expanded && !mobile.matches);
+      document.body.classList.toggle('sidebar-open', userPresent && expanded && mobile.matches);
+      sidebar!.hidden = !userPresent;
+      sidebar!.inert = mobile.matches && !expanded;
+      if (backdrop) backdrop.hidden = !(userPresent && expanded && mobile.matches);
+      toggle?.setAttribute('aria-expanded', String(userPresent && expanded));
+      toggle?.setAttribute('aria-label', expanded ? 'Cerrar menú' : 'Abrir menú');
+      toggle?.setAttribute('data-tooltip', expanded ? 'Cerrar menú' : 'Abrir menú');
+    }
+
+    toggle?.addEventListener('click', () => { expanded = !expanded; render(); });
+    backdrop?.addEventListener('click', () => { expanded = false; render(); toggle?.focus(); });
+    mobile.addEventListener('change', () => { expanded = false; render(); }, { signal: controller.signal });
+    const links = sidebar.querySelectorAll<HTMLAnchorElement>('a[href]');
+    function updateCurrentLink() {
+      const current = location.pathname.replace(/\/$/, '') || '/';
+      links.forEach((link) => {
+        const url = new URL(link.href);
+        const path = url.pathname.replace(/\/$/, '') || '/';
+        const matches = path === current && (url.hash ? url.hash === location.hash : !location.hash || path !== '/administracion');
+        if (matches) link.setAttribute('aria-current', 'page');
+        else link.removeAttribute('aria-current');
+      });
+    }
+    updateCurrentLink();
+    window.addEventListener('hashchange', updateCurrentLink, { signal: controller.signal });
+    links.forEach((link) => {
+      link.addEventListener('click', (event) => {
+        const url = new URL(link.href);
+        const currentPath = location.pathname.replace(/\/$/, '') || '/';
+        if (!event.metaKey && !event.ctrlKey && !event.shiftKey && !event.altKey && url.hash && (url.pathname.replace(/\/$/, '') || '/') === currentPath) {
+          event.preventDefault();
+          if (location.hash !== url.hash) location.hash = url.hash;
+        }
+        if (mobile.matches) { expanded = false; render(); }
+      });
+    });
+    document.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape' && expanded) { expanded = false; render(); toggle?.focus(); }
+    }, { signal: controller.signal });
+
+    closeBtn?.addEventListener('click', () => {
+      expanded = false;
+      render();
+      toggle?.focus();
+    });
+
+    const unsubscribe = $currentUser.subscribe((user) => {
+      userPresent = !!user;
+      if (!user) expanded = false;
+      render();
+
+      if (docSection) {
+        docSection.style.display = user?.isProfesor ? 'block' : 'none';
+      }
+      if (adminSection) {
+        adminSection.style.display = user?.isAdmin ? 'block' : 'none';
+      }
+      studentLinks.forEach((link) => { link.style.display = user?.isEstudiante ? '' : 'none'; });
+      profileLinks.forEach((link) => { link.style.display = user && !user.isAdmin ? '' : 'none'; });
+    });
+    document.addEventListener('astro:before-swap', () => {
+      controller.abort();
+      unsubscribe();
+      document.body.classList.remove('has-sidebar', 'sidebar-expanded', 'sidebar-open');
+    }, { once: true });
+  }
+
+  setupSidebar();
+  document.addEventListener('astro:page-load', setupSidebar);
+</script>

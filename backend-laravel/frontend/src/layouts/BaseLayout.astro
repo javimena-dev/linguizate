@@ -1,0 +1,92 @@
+---
+import { ClientRouter } from 'astro:transitions';
+import DynamicBackground from '../components/common/DynamicBackground.astro';
+import '../styles/global.css';
+
+interface Props {
+  title?: string;
+  description?: string;
+}
+
+const {
+  title = 'Lingüízate - Trivia Lingüística',
+  description = 'Desafía tu conocimiento lingüístico con preguntas de opción múltiple, explicaciones detalladas y chat contextual con IA.'
+} = Astro.props;
+---
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <link rel="icon" type="image/x-icon" href="/favicon.ico" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+    />
+    <ClientRouter />
+  </head>
+  <body>
+    <!-- Reproductor de música persistente que NO se interrumpe al navegar -->
+    <div id="persistent-audio-player" transition:persist>
+      <audio id="ambient-audio" loop src="/assets/music/ambient-loop.mp3" preload="auto"></audio>
+    </div>
+
+    <!-- Fondo dinámico con partículas y símbolos lingüísticos persistente -->
+    <div transition:persist>
+      <DynamicBackground />
+    </div>
+
+    <slot />
+
+    <section id="feedback-toasts" class="app-toasts" aria-live="polite" aria-relevant="additions"></section>
+    <dialog id="feedback-confirm" class="feedback-dialog" aria-labelledby="feedback-confirm-title">
+      <section class="feedback-dialog__card">
+        <h2 id="feedback-confirm-title" data-confirm-title>Confirmar acción</h2>
+        <p data-confirm-message></p>
+        <div class="feedback-dialog__actions">
+          <button type="button" class="btn-secondary" data-confirm-cancel>Cancelar</button>
+          <button type="button" class="btn-primary" data-confirm-accept>Confirmar</button>
+        </div>
+      </section>
+    </dialog>
+
+    <script>
+      import { initAmbientMusic } from '../scripts/audio';
+      import { fetchCurrentSession, clearSession } from '../scripts/store';
+      import { navigate } from 'astro:transitions/client';
+
+      let initialized = false;
+
+      function onInit() {
+        if (!initialized) {
+          initialized = true;
+          initAmbientMusic();
+        }
+        // Siempre verificar sesión en cada carga de página
+        void fetchCurrentSession();
+      }
+
+      const authWindow = window as Window & { __linguizateAuthEvents?: boolean };
+      if (!authWindow.__linguizateAuthEvents) {
+        authWindow.__linguizateAuthEvents = true;
+        window.addEventListener('linguizate:unauthorized', () => {
+          clearSession();
+          const next = encodeURIComponent(window.location.pathname + window.location.search);
+          void navigate(`/login?next=${next}`);
+        });
+        window.addEventListener('linguizate:verification-required', () => {
+          void navigate('/verificar-correo');
+        });
+      }
+
+      onInit();
+      document.addEventListener('astro:page-load', onInit);
+    </script>
+  </body>
+</html>

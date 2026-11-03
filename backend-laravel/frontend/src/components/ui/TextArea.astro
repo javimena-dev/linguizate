@@ -1,0 +1,8 @@
+---
+import FormField from './FormField.astro';
+interface Props { id: string; label?: string; name?: string; placeholder?: string; value?: string; rows?: number; required?: boolean; hint?: string; error?: string; }
+const { id, label, name = id, placeholder, value, rows = 4, required = false, hint, error } = Astro.props;
+---
+<FormField id={id} label={label || ''} hint={hint} error={error} required={required}>
+  <textarea class="ui-control ui-textarea" id={id} name={name} placeholder={placeholder} rows={rows} required={required} aria-describedby={error || hint ? `${id}-description` : undefined}>{value || ''}</textarea>
+</FormField>

@@ -1,0 +1,15 @@
+---
+import type { SelectOption } from './Select.astro';
+interface Props { name: string; label: string; options: SelectOption[]; value?: string; required?: boolean; orientation?: 'horizontal' | 'vertical'; }
+const { name, label, options, value, required = false, orientation = 'horizontal' } = Astro.props;
+const idFor = (option: string, index: number) => `${name}-${index}-${option.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`;
+---
+<fieldset class="ui-field ui-radio-field">
+  <legend class="ui-label">{label}{required && <span aria-hidden="true" class="ui-required"> *</span>}</legend>
+  <div class:list={['ui-radio-group', `is-${orientation}`]}>
+    {options.map((option, index) => <label class="ui-choice" for={idFor(option.value, index)}>
+      <input id={idFor(option.value, index)} class="ui-radio" type="radio" name={name} value={option.value} checked={option.value === value} required={required} />
+      <span class="ui-choice__indicator" aria-hidden="true"></span><span>{option.label}</span>
+    </label>)}
+  </div>
+</fieldset>

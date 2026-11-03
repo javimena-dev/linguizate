@@ -16,13 +16,17 @@ class ChatController extends Controller
     {
         /** @var User $user */
         $user = $request->user();
+
         return response()->json($this->usageData($user));
     }
 
     public function stream(Request $request)
     {
         $data = $request->validate([
-            'message' => ['required', 'string', 'min:1', 'max:4000'],
+            'message' => ['nullable', 'string', 'min:1', 'max:4000', 'required_without:userMessage'],
+            'userMessage' => ['nullable', 'string', 'min:1', 'max:4000', 'required_without:message'],
+            'question' => ['nullable', 'string', 'max:4000'],
+            'explanation' => ['nullable', 'string', 'max:6000'],
             'history' => ['nullable', 'array', 'max:12'],
             'history.*.role' => ['required_with:history', 'in:user,assistant'],
             'history.*.content' => ['required_with:history', 'string', 'max:4000'],
@@ -47,17 +51,18 @@ class ChatController extends Controller
 
         if (! config('services.groq.key')) {
             $this->releaseQuestion($user);
+
             return response()->json(['error' => 'El tutor no está configurado todavía.', 'code' => 'CHAT_NOT_CONFIGURED'], 503);
         }
 
         $messages = [[
             'role' => 'system',
-            'content' => 'Eres el Tutor de Lingüística IA de Lingüízate. Responde en español, de forma clara y útil. Atiende saludos y preguntas sobre lingüística, idiomas, gramática, traducción, escritura y contenidos relacionados con el juego. Si la consulta no corresponde, explica amablemente que solo puedes ayudar con esos temas y ofrece una alternativa relacionada. Puedes redactar textos largos educativos cuando se soliciten. Usa Markdown sencillo cuando ayude a comprender.',
+            'content' => 'Eres el Tutor de Lingüística IA de Lingüízate. Responde en español, de forma clara y útil. Atiende saludos y preguntas sobre lingüística, idiomas, gramática, traducción, escritura y contenidos relacionados con el juego. Si la consulta no corresponde, explica amablemente que solo puedes ayudar con esos temas y ofrece una alternativa relacionada. Puedes redactar textos largos educativos cuando se soliciten. Usa Markdown sencillo cuando ayude a comprender.'.(! empty($data['question']) ? "\nPregunta de trivia: ".$data['question'] : '').(! empty($data['explanation']) ? "\nExplicación: ".$data['explanation'] : ''),
         ]];
         foreach ($data['history'] ?? [] as $message) {
             $messages[] = ['role' => $message['role'], 'content' => $message['content']];
         }
-        $messages[] = ['role' => 'user', 'content' => $data['message']];
+        $messages[] = ['role' => 'user', 'content' => $data['message'] ?? $data['userMessage']];
 
         try {
             $response = Http::withToken(config('services.groq.key'))
@@ -75,12 +80,14 @@ class ChatController extends Controller
         } catch (\Throwable $exception) {
             report($exception);
             $this->releaseQuestion($user);
+
             return response()->json(['error' => 'El tutor tardó demasiado. Intenta de nuevo.', 'code' => 'GROQ_TIMEOUT'], 504);
         }
 
         if (! $response->successful()) {
             report(new \RuntimeException('Groq error: '.$response->status().' '.$response->body()));
             $this->releaseQuestion($user);
+
             return response()->json(['error' => 'El tutor no pudo responder. Intenta de nuevo.', 'code' => 'GROQ_ERROR'], 502);
         }
 
@@ -90,7 +97,6 @@ class ChatController extends Controller
             'Content-Type' => 'application/x-ndjson; charset=utf-8',
             'Cache-Control' => 'no-cache, no-transform',
             'X-Accel-Buffering' => 'no',
-            'Content-Encoding' => 'none',
         ];
 
         return response()->stream(function () use ($body, $payload, $user) {
@@ -150,6 +156,7 @@ class ChatController extends Controller
                 return null;
             }
             $usage->increment('count');
+
             return $usage;
         });
     }
@@ -165,6 +172,7 @@ class ChatController extends Controller
         $day = Carbon::now(config('app.timezone'))->toDateString();
         $used = (int) ChatUsage::query()->where('user_id', $user->id)->whereDate('usage_day', $day)->value('count');
         $limit = config('chat.daily_limit');
+
         return [
             'limit' => $limit,
             'used' => $used,

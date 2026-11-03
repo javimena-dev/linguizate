@@ -1,5 +1,7 @@
 <?php
 
+use App\Http\Middleware\EnsureEmailVerified;
+use App\Http\Middleware\EnsureRole;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -12,8 +14,13 @@ return Application::configure(basePath: dirname(__DIR__))
         commands: __DIR__.'/../routes/console.php',
         health: '/up',
     )
+    ->withCommands()
     ->withMiddleware(function (Middleware $middleware) {
         $middleware->statefulApi();
+        $middleware->alias([
+            'role' => EnsureRole::class,
+            'verified.api' => EnsureEmailVerified::class,
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {
         //

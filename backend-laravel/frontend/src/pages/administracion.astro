@@ -1,0 +1,84 @@
+---
+import AppLayout from '../layouts/AppLayout.astro';
+import AdminList from '../components/common/AdminList.astro';
+---
+<AppLayout title="Administración - Lingüízate" showBack backUrl="/">
+  <!-- Panel de Control del Administrador -->
+  <div id="admin-panel-wrap" class="container admin-panel-wrap" style="display: none;">
+    <header style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; flex-wrap: wrap; gap: 14px;">
+      <div>
+        <h2 style="font-size: 2.2rem; margin-bottom: 4px;">
+          <i class="fas fa-tools" style="color: var(--primary-color); margin-right: 10px;"></i>
+          Panel de Administración
+        </h2>
+        <p class="text-secondary">Gestión de usuarios, métricas, preguntas y moderación de contenido</p>
+      </div>
+      <button type="button" id="btn-admin-logout" class="btn-secondary">
+        <i class="fas fa-sign-out-alt"></i> Salir del Panel
+      </button>
+    </header>
+
+    <div class="admin-workspace">
+    <div class="admin-workspace-content">
+
+    <!-- Contenido 1: Dashboard Global -->
+    <div id="admin-sec-dashboard" class="admin-tab-content">
+      <div style="display:flex; justify-content:flex-end; margin-bottom:14px;">
+        <button type="button" id="btn-export-research" class="btn-secondary">
+          <i class="fas fa-file-excel"></i> Exportar Excel de investigación
+        </button>
+      </div>
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px; margin-bottom: 30px;">
+        <div class="card" style="background: var(--bg-primary); padding: 20px; border-radius: var(--border-radius); border: 1px solid var(--border-color);">
+          <span class="text-secondary" style="font-size: 0.9rem;">Total Usuarios</span>
+          <h3 id="stat-total-users" style="font-size: 2rem; color: var(--primary-color); margin-top: 6px;" aria-live="polite">
+            <span class="skeleton-inline" aria-hidden="true" style="width:3rem; height:2rem; display:inline-block;"></span>
+          </h3>
+        </div>
+        <div class="card" style="background: var(--bg-primary); padding: 20px; border-radius: var(--border-radius); border: 1px solid var(--border-color);">
+          <span class="text-secondary" style="font-size: 0.9rem;">Total Preguntas del Sistema</span>
+          <h3 id="stat-total-questions" style="font-size: 2rem; color: var(--success-color); margin-top: 6px;" aria-live="polite">
+            <span class="skeleton-inline" aria-hidden="true" style="width:3rem; height:2rem; display:inline-block;"></span>
+          </h3>
+        </div>
+        <div class="card" style="background: var(--bg-primary); padding: 20px; border-radius: var(--border-radius); border: 1px solid var(--border-color);">
+          <span class="text-secondary" style="font-size: 0.9rem;">Categorías Activas</span>
+          <h3 id="stat-total-categories" style="font-size: 2rem; color: var(--accent-color); margin-top: 6px;" aria-live="polite">
+            <span class="skeleton-inline" aria-hidden="true" style="width:3rem; height:2rem; display:inline-block;"></span>
+          </h3>
+        </div>
+      </div>
+    </div>
+
+    <div id="admin-sec-users" class="admin-tab-content" style="display: none;">
+      <form id="teacher-invitation-form" class="admin-invitation" novalidate>
+        <div>
+          <h3>Invitar docente</h3>
+          <p class="text-secondary">El docente recibirá un enlace válido durante 24 horas.</p>
+        </div>
+        <label>Nombre <input id="teacher-name" autocomplete="name" maxlength="100" required /></label>
+        <label>Correo <input id="teacher-email" type="email" autocomplete="email" maxlength="255" required /></label>
+        <button id="teacher-invite-submit" type="submit" class="btn-primary"><i class="fas fa-paper-plane"></i> Enviar invitación</button>
+      </form>
+      <AdminList id="users" title="Usuarios" columns={['ID', 'Nombre', 'Correo', 'Rol', 'Puntos', 'Partidas', 'Estado', 'Acciones']} numericSort />
+    </div>
+    <div id="admin-sec-questions" class="admin-tab-content" style="display: none;">
+      <AdminList id="questions" title="Preguntas" columns={['ID', 'Pregunta', 'Dificultad', 'Subcategoría']} />
+    </div>
+    <div id="admin-sec-categories" class="admin-tab-content" style="display: none;">
+      <AdminList id="categories" title="Categorías" columns={['ID', 'Nombre', 'Tipo', 'Código', 'Estado', 'Acciones']} />
+    </div>
+    </div>
+    </div>
+  </div>
+</AppLayout>
+<style>
+  .admin-invitation { display:grid; grid-template-columns:minmax(180px,1.2fr) repeat(2,minmax(170px,1fr)) auto; align-items:end; gap:1rem; padding:1rem; margin-bottom:1.25rem; border:1px solid var(--border-color); border-radius:var(--border-radius); background:var(--bg-primary); }
+  .admin-invitation h3,.admin-invitation p { margin:.15rem 0; }
+  .admin-invitation label { display:grid; gap:.35rem; font-size:.9rem; }
+  .admin-invitation input { width:100%; box-sizing:border-box; padding:.7rem .8rem; border:1px solid var(--border-color); border-radius:.55rem; background:var(--bg-primary); color:var(--text-primary); }
+  @media (max-width:900px) { .admin-invitation { grid-template-columns:1fr; align-items:stretch; } }
+</style>
+<script>
+  import '../scripts/admin';
+</script>

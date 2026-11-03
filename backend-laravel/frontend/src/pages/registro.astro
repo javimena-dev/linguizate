@@ -1,0 +1,16 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+---
+
+<BaseLayout title="Crear cuenta - Lingüízate">
+  <main class="container container-auth-tight login-screen-layout">
+    <p>Abriendo el registro…</p>
+    <p><a href="/login?mode=register">Continuar al registro</a></p>
+  </main>
+</BaseLayout>
+
+<script is:inline>
+  const next = new URL('/login', location.origin);
+  next.searchParams.set('mode', 'register');
+  location.replace(next.pathname + next.search);
+</script>

@@ -1,19 +1,26 @@
-# Publicación inicial en HostGator
+# Publicación completa en HostGator
 
-Este hito publica autenticación y el chat. Juego, ranking y paneles siguen en Node y no se deben publicar todavía como funcionales.
+Laravel contiene API y frontend Astro. Node solo compila en el equipo local.
 
-1. En tu equipo ejecuta `npm run build` dentro de `frontend-astro`.
-2. En tu equipo ejecuta `composer install --no-dev --optimize-autoloader` dentro de `backend-laravel`. En HostGator compartido no habrá Composer ni Node.
-3. Sube `backend-laravel` fuera de `public_html`, por ejemplo `~/linguizate-api`.
-4. Copia el contenido de `backend-laravel/public` a `public_html` del subdominio `linguizate.jmenachop.com`.
-5. Copia los archivos de `frontend-astro/dist` al mismo `public_html`. Conserva `index.php` y `.htaccess` de Laravel.
-6. Haz que los archivos estáticos de Astro se sirvan directamente. Las rutas `/api/*` y `/sanctum/*` deben llegar a `index.php` de Laravel por el `.htaccess` de `public`.
-7. En `~/linguizate-api/.env` configura base MySQL, `APP_URL`, `FRONTEND_URL`, Titan SMTP, Google OAuth y Groq. Nunca subas ese archivo a Git.
-8. Desde cPanel ejecuta las migraciones con la herramienta disponible. Si tu plan no expone Terminal/SSH, importa el esquema desde una migración o pide a soporte acceso puntual; no uses una base de datos de producción sin crear las tablas de Laravel.
-9. Apunta `public/index.php` a `~/linguizate-api/vendor/autoload.php` y `~/linguizate-api/bootstrap/app.php` si Laravel vive fuera de `public_html`.
-10. Activa HTTPS y pon `SESSION_SECURE_COOKIE=true`.
+## Preparar paquete local
 
-Variables de producción mínimas:
+1. En `backend-laravel`, ejecuta `npm run frontend:release`.
+2. Confirma que `public` contiene las 18 rutas Astro, `index.php` y `.htaccess`.
+3. Ejecuta `composer install --no-dev --optimize-autoloader`.
+4. Ejecuta `php artisan test` antes de comprimir el proyecto.
+
+`frontend:publish` usa un manifiesto. Solo reemplaza archivos creados por Astro y nunca sobrescribe `index.php`, `.htaccess` ni `web.config`.
+
+## Estructura cPanel
+
+1. Sube `backend-laravel` fuera de `public_html`, por ejemplo `~/linguizate-api`.
+2. Copia `backend-laravel/public` a `public_html` del subdominio.
+3. Ajusta `public_html/index.php` si Laravel está en `~/linguizate-api`.
+4. Conserva `.htaccess`: sirve archivos Astro y envía `/api/*` y `/sanctum/*` a Laravel.
+5. Importa la base MySQL o ejecuta migraciones.
+6. Ejecuta `php artisan optimize` después de configurar `.env`.
+
+## Variables mínimas
 
 ```dotenv
 APP_ENV=production
@@ -50,4 +57,16 @@ GROQ_TIMEOUT=25
 CHAT_DAILY_LIMIT=10
 ```
 
-Después de cambiar `.env`, limpia las cachés de Laravel. Verifica primero registro normal, verificación, recuperación, Google y una respuesta del chat en producción.
+Google Cloud debe registrar exactamente el URI de redirección anterior. Activa HTTPS antes de probar sesiones.
+
+## Validación de producción
+
+- Registro estudiante, correo de verificación y cierre de sesión.
+- Google solo para estudiantes.
+- Recuperación de contraseña.
+- Invitación y activación docente.
+- Login y paneles por rol.
+- Juego público y guardado autenticado.
+- Chat Groq progresivo.
+
+HostGator no necesita Node, `node_modules`, `frontend/src` ni `frontend/dist` para ejecutar la aplicación.

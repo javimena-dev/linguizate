@@ -1,0 +1,158 @@
+---
+import AppLayout from '../layouts/AppLayout.astro';
+---
+<AppLayout title="Lingüízate - Trivia Lingüística">
+  <div class="container inicio-container" id="home-screen">
+    <div class="inicio-split">
+      <aside class="inicio-split-brand" aria-label="Marca">
+        <div class="inicio-brand-stack">
+          <h1 class="sr-only">Lingüízate</h1>
+          <img
+            src="/assets/images/portada/log.png"
+            alt="Lingüízate"
+            class="brand-logo-img brand-logo-img--hero brand-logo-breathe"
+            width="400"
+            height="120"
+            decoding="async"
+          />
+          <p class="inicio-tagline">Desafía tu conocimiento lingüístico</p>
+        </div>
+      </aside>
+
+      <div class="inicio-split-action">
+        <div class="mode-selector">
+          <h3>Modo de juego</h3>
+          <div class="mode-cards">
+            <button type="button" class="mode-card active" data-mode="clasico" id="mode-clasico">
+              <span class="mode-label">Clásico</span>
+              <span class="mode-description">Preguntas con tiempo y puntuación completa</span>
+              <span class="mode-tag"><i class="fas fa-bolt"></i> Recomendado</span>
+            </button>
+            <button type="button" class="mode-card" data-mode="estudio" id="mode-estudio">
+              <span class="mode-label">Estudio</span>
+              <span class="mode-description">Sin cuenta atrás, ideal para aprender con calma</span>
+              <span class="mode-tag"><i class="fas fa-book-open"></i> Aprendizaje</span>
+            </button>
+          </div>
+        </div>
+
+        <div id="join-by-code-section" class="join-by-code-section">
+          <h3>¿Tienes un código de clase?</h3>
+          <p class="join-by-code-desc">
+            Ingresa el código de 6 caracteres que te dio tu profesor para jugar su categoría directamente.
+          </p>
+          <div class="join-by-code-row">
+            <input
+              type="text"
+              id="access-code-input"
+              class="access-code-input"
+              placeholder="Ej: AB3XK9"
+              maxlength="6"
+              autocomplete="off"
+            />
+            <button type="button" id="btn-join-by-code" class="btn-secondary">
+              <i class="fas fa-sign-in-alt"></i> Unirse
+            </button>
+          </div>
+          <p id="join-code-message" class="join-code-message" aria-live="polite"></p>
+        </div>
+
+        <div class="menu-buttons menu-buttons-home">
+          <a href="/categorias" id="btn-jugar" class="btn-primary btn-jugar-hero">
+            <i class="fas fa-play"></i> Jugar
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</AppLayout>
+
+<script>
+  import { navigate } from 'astro:transitions/client';
+  import { $currentMode, $activeGame } from '../scripts/store';
+  import { api } from '../scripts/api';
+  import { playSFX } from '../scripts/audio';
+
+  function setupHome() {
+    const home = document.getElementById('home-screen');
+    if (!home || home.dataset.initialized === 'true') return;
+    home.dataset.initialized = 'true';
+
+    const cardClasico = document.getElementById('mode-clasico');
+    const cardEstudio = document.getElementById('mode-estudio');
+    const joinBtn = document.getElementById('btn-join-by-code');
+    const codeInput = document.getElementById('access-code-input') as HTMLInputElement | null;
+    const msgEl = document.getElementById('join-code-message');
+
+    cardClasico?.addEventListener('click', () => {
+      cardClasico.classList.add('active');
+      cardEstudio?.classList.remove('active');
+      $currentMode.set('clasico');
+      playSFX('select');
+    });
+
+    cardEstudio?.addEventListener('click', () => {
+      cardEstudio.classList.add('active');
+      cardClasico?.classList.remove('active');
+      $currentMode.set('estudio');
+      playSFX('select');
+    });
+
+    joinBtn?.addEventListener('click', async () => {
+      const code = (codeInput?.value || '').trim().toUpperCase();
+      if (!code || code.length !== 6) {
+        if (msgEl) {
+          msgEl.textContent = 'Ingresa un código válido de 6 caracteres';
+          msgEl.className = 'join-code-message error';
+        }
+        return;
+      }
+
+      if (msgEl) {
+        msgEl.textContent = 'Verificando código...';
+        msgEl.className = 'join-code-message info';
+      }
+
+      try {
+        const res = await api.post('/classes/join', { accessCode: code });
+        if (res && res.category) {
+          const category = res.category;
+          const questions = category.questions || [];
+          if (!questions.length) {
+            if (msgEl) {
+              msgEl.textContent = 'Esta categoría aún no tiene preguntas publicadas';
+              msgEl.className = 'join-code-message error';
+            }
+            return;
+          }
+
+          // Iniciar partida con la clase privada
+          $activeGame.set({
+            clientGameId: `game_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
+            category: { id: category.id, name: category.name },
+            subcategory: { id: category.id, name: category.name },
+            mode: $currentMode.get(),
+            questions: questions,
+            currentQuestionIndex: 0,
+            score: 0,
+            streak: 0,
+            correctAnswers: 0,
+            incorrectAnswers: 0,
+            attempts: [],
+            playedAt: new Date().toISOString()
+          });
+
+          await navigate('/juego');
+        }
+      } catch (err: any) {
+        if (msgEl) {
+          msgEl.textContent = err.message || 'Código incorrecto o no autorizado (inicia sesión como estudiante)';
+          msgEl.className = 'join-code-message error';
+        }
+      }
+    });
+  }
+
+  setupHome();
+  document.addEventListener('astro:page-load', setupHome);
+</script>

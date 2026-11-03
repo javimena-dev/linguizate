@@ -1,0 +1,17 @@
+---
+import AppLayout from '../layouts/AppLayout.astro';
+---
+
+<AppLayout title="Recuperar contraseña - Lingüízate" showBack backUrl="/login">
+  <section class="container container-auth-tight login-screen-layout"><div class="auth-form auth-card auth-form-compact">
+    <h1 class="auth-title-compact">Recuperar contraseña</h1><p>Te enviaremos un enlace para crear una nueva contraseña.</p>
+    <form id="form"><div class="form-group"><label for="email">Correo electrónico</label><input id="email" type="email" autocomplete="email" required /></div><button class="btn-primary btn-auth-submit">Enviar enlace</button></form>
+    <p id="message" class="auth-notification" hidden aria-live="polite"></p>
+  </div></section>
+</AppLayout>
+<style>.form-group input { width:100%;box-sizing:border-box;padding:.72rem .8rem;border:1px solid #d4d9e3;border-radius:.55rem; }</style>
+<script>
+  import { api } from '../scripts/api';
+  const form = document.querySelector<HTMLFormElement>('#form')!; const message = document.querySelector<HTMLElement>('#message')!;
+  form.addEventListener('submit', async (event) => { event.preventDefault(); const button = form.querySelector('button')!; button.disabled = true; try { const result = await api.post('/auth/password/forgot', { email: document.querySelector<HTMLInputElement>('#email')!.value.trim() }); message.hidden = false; message.style.color = '#197149'; message.textContent = result.message; } catch (error: any) { message.hidden = false; message.style.color = '#c53030'; message.textContent = error?.message || 'No se pudo enviar el enlace.'; } finally { button.disabled = false; } });
+</script>

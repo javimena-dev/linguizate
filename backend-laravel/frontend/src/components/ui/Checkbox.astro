@@ -1,0 +1,5 @@
+---
+interface Props { id: string; name?: string; label: string; checked?: boolean; required?: boolean; disabled?: boolean; }
+const { id, name = id, label, checked = false, required = false, disabled = false } = Astro.props;
+---
+<label class="ui-check-choice" for={id}><input class="ui-checkbox" type="checkbox" id={id} name={name} checked={checked} required={required} disabled={disabled} /><span class="ui-check-indicator" aria-hidden="true"><i class="fas fa-check"></i></span><span>{label}</span></label>

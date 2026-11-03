@@ -1,0 +1,172 @@
+---
+import AppLayout from '../layouts/AppLayout.astro';
+---
+<AppLayout title="Resultados de la Partida - Lingüízate">
+  <div class="results-screen-celebration" id="results-screen" style="padding: 40px 16px; min-height: 80vh; display: flex; align-items: center; justify-content: center;">
+    <div class="container results-console-container" style="max-width: 760px; width: 100%;">
+      <header class="results-epic-header" style="text-align: center; margin-bottom: 24px;">
+        <h2 class="results-done-title" style="font-size: 2.2rem; margin-bottom: 8px;">¡Juego Completado!</h2>
+        <p id="res-category-name" class="text-secondary" style="font-size: 1.1rem; margin-bottom: 16px;">
+          Categoría
+        </p>
+        <div class="final-score-epic" id="final-score-wrap">
+          <span id="final-score" class="final-score-number" style="font-size: 3.5rem; font-weight: 800; color: var(--primary-color);">0</span>
+          <span class="final-score-suffix" style="font-size: 1.2rem; color: var(--text-muted); margin-left: 8px;">puntos</span>
+        </div>
+      </header>
+
+      <div class="results-stats-compact" id="results-stats-compact" style="display: flex; justify-content: center; gap: 16px; flex-wrap: wrap; margin-bottom: 30px;">
+        <div class="results-stat-chip" style="display: flex; align-items: center; gap: 8px; padding: 10px 18px; border-radius: 20px; background: var(--bg-secondary); border: 1px solid var(--border-color);">
+          <i class="fas fa-check" style="color: var(--success-color);"></i>
+          <span class="results-stat-label">Correctas:</span>
+          <strong id="res-correct" class="results-stat-value">0</strong>
+        </div>
+        <div class="results-stat-chip" style="display: flex; align-items: center; gap: 8px; padding: 10px 18px; border-radius: 20px; background: var(--bg-secondary); border: 1px solid var(--border-color);">
+          <i class="fas fa-times" style="color: var(--error-color);"></i>
+          <span class="results-stat-label">Incorrectas:</span>
+          <strong id="res-incorrect" class="results-stat-value">0</strong>
+        </div>
+        <div class="results-stat-chip" style="display: flex; align-items: center; gap: 8px; padding: 10px 18px; border-radius: 20px; background: var(--bg-secondary); border: 1px solid var(--border-color);">
+          <i class="fas fa-bullseye" style="color: var(--accent-color);"></i>
+          <span class="results-stat-label">Precisión:</span>
+          <strong id="res-precision" class="results-stat-value">0%</strong>
+        </div>
+        <div class="results-stat-chip" style="display: flex; align-items: center; gap: 8px; padding: 10px 18px; border-radius: 20px; background: var(--bg-secondary); border: 1px solid var(--border-color);">
+          <i class="fas fa-clock" style="color: var(--primary-color);"></i>
+          <span class="results-stat-label">Tiempo medio:</span>
+          <strong id="res-avg-time" class="results-stat-value">0s</strong>
+        </div>
+      </div>
+
+      <!-- Fila de medallas -->
+      <section class="results-panel results-medals-panel" style="background: var(--bg-secondary); padding: 24px; border-radius: var(--border-radius); border: 1px solid var(--border-color); margin-bottom: 30px; text-align: center;">
+        <h3 style="font-size: 1.1rem; margin-bottom: 16px;">Logros Obtenidos en la Partida</h3>
+        <div class="results-medals-row" id="results-medals-row" style="display: flex; justify-content: center; gap: 24px; flex-wrap: wrap;">
+          <div class="results-medal" id="medal-score" style="display: flex; flex-direction: column; align-items: center; gap: 6px; opacity: 0.35;">
+            <i class="fas fa-star fa-2x" style="color: #f59e0b;"></i>
+            <span style="font-size: 0.85rem; font-weight: 600;">Puntaje Alto</span>
+          </div>
+          <div class="results-medal" id="medal-perfect" style="display: flex; flex-direction: column; align-items: center; gap: 6px; opacity: 0.35;">
+            <i class="fas fa-gem fa-2x" style="color: #06b6d4;"></i>
+            <span style="font-size: 0.85rem; font-weight: 600;">Perfecto</span>
+          </div>
+          <div class="results-medal" id="medal-precision" style="display: flex; flex-direction: column; align-items: center; gap: 6px; opacity: 0.35;">
+            <i class="fas fa-bullseye fa-2x" style="color: #10b981;"></i>
+            <span style="font-size: 0.85rem; font-weight: 600;">Precisión > 80%</span>
+          </div>
+          <div class="results-medal" id="medal-rae" style="display: flex; flex-direction: column; align-items: center; gap: 6px; opacity: 0.35;">
+            <i class="fas fa-crown fa-2x" style="color: #8b5cf6;"></i>
+            <span style="font-size: 0.85rem; font-weight: 600;">Distinción RAE</span>
+          </div>
+        </div>
+      </section>
+      <p id="res-rank" class="text-secondary" style="text-align:center; margin:-12px 0 24px;" aria-live="polite"></p>
+
+      <!-- Botones de acción -->
+      <div class="results-actions results-actions-balanced" style="display: flex; gap: 14px; justify-content: center; flex-wrap: wrap;">
+        <a href="/categorias" class="btn-primary btn-play-again-hero">
+          <i class="fas fa-redo"></i> Jugar Otra Partida
+        </a>
+        <a href="/progresos" class="btn-secondary">
+          <i class="fas fa-chart-line"></i> Mis Progresos
+        </a>
+        <a href="/" class="btn-secondary">
+          <i class="fas fa-home"></i> Inicio
+        </a>
+      </div>
+    </div>
+  </div>
+</AppLayout>
+
+<script>
+  import { navigate } from 'astro:transitions/client';
+  import { $activeGame, $currentUser } from '../scripts/store';
+  import { api } from '../scripts/api';
+
+  function setupResults() {
+    const screen = document.getElementById('results-screen');
+    if (!screen || screen.dataset.initialized === 'true') return;
+    screen.dataset.initialized = 'true';
+
+    const game = $activeGame.get();
+
+    const catNameEl = document.getElementById('res-category-name');
+    const finalScoreEl = document.getElementById('final-score');
+    const correctEl = document.getElementById('res-correct');
+    const incorrectEl = document.getElementById('res-incorrect');
+    const precisionEl = document.getElementById('res-precision');
+    const avgTimeEl = document.getElementById('res-avg-time');
+
+    const medalScore = document.getElementById('medal-score');
+    const medalPerfect = document.getElementById('medal-perfect');
+    const medalPrecision = document.getElementById('medal-precision');
+    const medalRae = document.getElementById('medal-rae');
+
+    if (!game) {
+      void navigate('/');
+      return;
+    }
+
+    if (catNameEl) {
+      catNameEl.textContent = `${game.category?.name || 'Trivia'} • ${game.subcategory?.name || ''}`;
+    }
+
+    if (finalScoreEl) finalScoreEl.textContent = game.score.toString();
+    if (correctEl) correctEl.textContent = game.correctAnswers.toString();
+    if (incorrectEl) incorrectEl.textContent = game.incorrectAnswers.toString();
+
+    const total = game.correctAnswers + game.incorrectAnswers;
+    const precision = total > 0 ? Math.round((game.correctAnswers / total) * 100) : 0;
+    if (precisionEl) precisionEl.textContent = `${precision}%`;
+
+    const totalTime = game.attempts.reduce((sum, a) => sum + (a.responseTimeSeconds || 0), 0);
+    const avgTime = game.attempts.length > 0 ? (totalTime / game.attempts.length).toFixed(1) : '0';
+    if (avgTimeEl) avgTimeEl.textContent = `${avgTime}s`;
+
+    // Medallas
+    if (game.score >= 800 && medalScore) {
+      medalScore.style.opacity = '1';
+      medalScore.classList.add('is-lit');
+    }
+    if (total > 0 && game.correctAnswers === total && medalPerfect) {
+      medalPerfect.style.opacity = '1';
+      medalPerfect.classList.add('is-lit');
+    }
+    if (precision >= 80 && medalPrecision) {
+      medalPrecision.style.opacity = '1';
+      medalPrecision.classList.add('is-lit');
+    }
+    if (game.score >= 1000 && precision >= 90 && medalRae) {
+      medalRae.style.opacity = '1';
+      medalRae.classList.add('is-lit');
+    }
+
+    // Posición real después del guardado de partida.
+    const currentUser = $currentUser.get();
+    if (currentUser) {
+      void api.get<{ users: Array<{ id: number }> }>('/ranking').then(({ users }) => {
+        const position = users.findIndex((entry) => entry.id === currentUser.id);
+        const rank = document.getElementById('res-rank');
+        if (rank && position >= 0) rank.textContent = `Posición global actual: #${position + 1}`;
+      });
+    }
+    celebrateResults();
+  }
+
+  function celebrateResults() {
+    const host = document.getElementById('results-screen');
+    if (!host || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    for (let index = 0; index < 22; index += 1) {
+      const piece = document.createElement('i');
+      piece.className = 'result-confetti';
+      piece.style.left = `${8 + Math.random() * 84}%`;
+      piece.style.animationDelay = `${Math.random() * .6}s`;
+      piece.style.background = ['#6366f1', '#f59e0b', '#10b981', '#ec4899'][index % 4];
+      host.appendChild(piece);
+      window.setTimeout(() => piece.remove(), 2600);
+    }
+  }
+
+  setupResults();
+  document.addEventListener('astro:page-load', setupResults);
+</script>

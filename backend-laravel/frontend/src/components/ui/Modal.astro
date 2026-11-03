@@ -1,0 +1,20 @@
+---
+interface Props { id: string; title: string; labelledBy?: string; class?: string; }
+const { id, title, labelledBy = `${id}-title`, class: className = '' } = Astro.props;
+---
+<dialog id={id} class:list={['ui-modal', className]} aria-labelledby={labelledBy}>
+  <section class="ui-modal__card"><header class="ui-modal__header"><h2 id={labelledBy}>{title}</h2><button class="ui-icon-button" type="button" data-modal-close aria-label="Cerrar"><i class="fas fa-xmark"></i></button></header><div class="ui-modal__body"><slot /></div></section>
+</dialog>
+
+<script>
+  function setupUiModals() {
+    document.querySelectorAll<HTMLDialogElement>('.ui-modal').forEach((dialog) => {
+      if (dialog.dataset.initialized === 'true') return;
+      dialog.dataset.initialized = 'true';
+      dialog.querySelector('[data-modal-close]')?.addEventListener('click', () => dialog.close());
+      dialog.addEventListener('click', (event) => { if (event.target === dialog) dialog.close(); });
+    });
+  }
+  setupUiModals();
+  document.addEventListener('astro:page-load', setupUiModals);
+</script>

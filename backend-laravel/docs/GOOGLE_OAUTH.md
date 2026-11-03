@@ -7,8 +7,8 @@ No subas el ID ni el secreto del cliente a Git. Van solamente en el archivo `.en
 3. En **Data Access**, agrega únicamente `openid`, `email` y `profile`.
 4. En **Clients**, crea un cliente OAuth de tipo **Web application**.
 5. Durante desarrollo registra:
-   - Origen JavaScript: `http://localhost:4321`
-   - URI de redirección: `http://localhost:4321/api/auth/google/callback`
+   - Origen JavaScript: `http://localhost:8000`
+   - URI de redirección: `http://localhost:8000/api/auth/google/callback`
 6. En producción registra:
    - Origen JavaScript: `https://linguizate.jmenachop.com`
    - URI de redirección: `https://linguizate.jmenachop.com/api/auth/google/callback`

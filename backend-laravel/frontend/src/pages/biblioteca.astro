@@ -1,0 +1,146 @@
+---
+import AppLayout from '../layouts/AppLayout.astro';
+---
+<AppLayout title="Mi Biblioteca - Lingüízate" showBack backUrl="/">
+  <div class="container" id="library-screen" style="max-width: 960px; padding: 40px 16px;">
+    <header style="margin-bottom: 30px;">
+      <h2 style="font-size: 2rem; margin-bottom: 8px;">
+        <i class="fas fa-book" style="color: var(--primary-color); margin-right: 10px;"></i>
+        Mi Biblioteca
+      </h2>
+      <p class="text-secondary">Accede a tus categorías de estudio y clases privadas de profesores</p>
+    </header>
+
+    <!-- Caja de código de clase -->
+    <div class="card" style="background: var(--bg-primary); border-radius: var(--border-radius); border: 1px solid var(--border-color); padding: 24px; margin-bottom: 30px; box-shadow: var(--shadow-sm);">
+      <h3 style="font-size: 1.2rem; margin-bottom: 8px;">
+        <i class="fas fa-key" style="color: var(--accent-color);"></i> ¿Tienes un código de clase privada?
+      </h3>
+      <p class="text-secondary" style="font-size: 0.95rem; margin-bottom: 16px;">
+        Ingresa el código entregado por tu profesor para desbloquear y jugar sus preguntas exclusivas.
+      </p>
+      <div style="display: flex; gap: 12px; max-width: 440px;">
+        <input type="text" id="lib-access-code" placeholder="Ej: AB3XK9" maxlength="6" style="flex: 1; text-transform: uppercase; font-weight: 700; letter-spacing: 2px;" />
+        <button type="button" id="btn-lib-join" class="btn-primary">
+          <i class="fas fa-sign-in-alt"></i> Unirse
+        </button>
+      </div>
+      <p id="lib-msg" style="display: none; margin-top: 12px; font-weight: 500;" aria-live="polite"></p>
+    </div>
+
+    <!-- Catálogo de categorías disponibles -->
+    <h3 style="font-size: 1.3rem; margin-bottom: 16px;">Categorías del Sistema</h3>
+    <div id="lib-categories-grid" class="categories-grid">
+      <!-- Carga dinámica -->
+    </div>
+  </div>
+</AppLayout>
+
+<script>
+  import { navigate } from 'astro:transitions/client';
+  import { api } from '../scripts/api';
+  import { $activeGame, $currentMode } from '../scripts/store';
+  import { guardRoute } from '../scripts/guards';
+  import { runAsyncAction, notify } from '../scripts/feedback';
+
+  async function loadBiblioteca() {
+    const screen = document.getElementById('library-screen');
+    if (!screen || screen.dataset.initialized === 'true') return;
+    screen.dataset.initialized = 'true';
+
+    await guardRoute('estudiante');
+
+    const codeInput = document.getElementById('lib-access-code') as HTMLInputElement | null;
+    const joinBtn = document.getElementById('btn-lib-join') as HTMLButtonElement | null;
+    const gridEl = document.getElementById('lib-categories-grid');
+
+    // Skeleton inicial
+    if (gridEl) {
+      gridEl.innerHTML = `
+        <div style="grid-column: 1 / -1; padding: 20px 0;">
+          <span class="wave-loader" aria-hidden="true"><i></i><i></i><i></i></span>
+          <span class="text-secondary" style="margin-left: 8px;">Cargando catálogo…</span>
+        </div>
+      `;
+    }
+
+    // Cargar catálogo de categorías
+    try {
+      const res = await api.get<{ categories: any[] }>('/catalog');
+      const cats = res.categories || [];
+      if (gridEl) {
+        gridEl.innerHTML = cats
+          .map(
+            (c) => `
+            <div class="category-card" style="cursor: pointer;" data-cat-id="${c.id}">
+              <div class="category-card-icon">
+                <i class="${c.icon || 'fas fa-book'}"></i>
+              </div>
+              <div class="category-card-info">
+                <h3>${c.name}</h3>
+                <p>${c.description || ''}</p>
+                <span class="category-card-badge">${c.subcategories.length} subtemas</span>
+              </div>
+            </div>
+          `
+          )
+          .join('');
+
+        gridEl.querySelectorAll('.category-card').forEach((card) => {
+          card.addEventListener('click', () => {
+            void navigate('/categorias');
+          });
+        });
+      }
+    } catch (_e) {
+      if (gridEl) {
+        gridEl.innerHTML = `
+          <div style="grid-column: 1 / -1; text-align: center; padding: 24px;">
+            <p class="text-secondary" style="color: var(--error-color); margin-bottom: 12px;">No se pudo cargar el catálogo.</p>
+            <button type="button" class="btn-secondary" id="btn-retry-lib"><i class="fas fa-redo"></i> Reintentar</button>
+          </div>
+        `;
+        document.getElementById('btn-retry-lib')?.addEventListener('click', () => {
+          screen.dataset.initialized = 'false';
+          void loadBiblioteca();
+        });
+      }
+    }
+
+    // Unirse a clase
+    joinBtn?.addEventListener('click', async () => {
+      const code = (codeInput?.value || '').trim().toUpperCase();
+      if (!code || code.length !== 6) {
+        notify({ message: 'Ingresa un código de 6 caracteres válido.', kind: 'warning' });
+        return;
+      }
+
+      await runAsyncAction(joinBtn, async () => {
+        const res = await api.post('/classes/join', { accessCode: code });
+        if (res?.category) {
+          const category = res.category;
+          const questions = category.questions || [];
+          if (!questions.length) throw new Error('Esta categoría de clase no tiene preguntas aún.');
+          $activeGame.set({
+            clientGameId: `game_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
+            category: { id: category.id, name: category.name },
+            subcategory: { id: category.id, name: category.name },
+            mode: $currentMode.get(),
+            questions,
+            currentQuestionIndex: 0,
+            score: 0,
+            streak: 0,
+            correctAnswers: 0,
+            incorrectAnswers: 0,
+            attempts: [],
+            playedAt: new Date().toISOString()
+          });
+          await navigate('/juego');
+        }
+      }, { loadingLabel: 'Verificando…', silent: true });
+    });
+  }
+
+  loadBiblioteca();
+  document.addEventListener('astro:page-load', loadBiblioteca);
+</script>

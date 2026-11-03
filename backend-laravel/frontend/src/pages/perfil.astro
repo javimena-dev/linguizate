@@ -1,0 +1,105 @@
+---
+import AppLayout from '../layouts/AppLayout.astro';
+import TextInput from '../components/ui/TextInput.astro';
+import RadioGroup from '../components/ui/RadioGroup.astro';
+import AvatarPicker from '../components/ui/AvatarPicker.astro';
+import Button from '../components/ui/Button.astro';
+---
+<AppLayout title="Mi perfil - Lingüízate" showBack backUrl="/">
+  <section class="container profile-page" id="profile-screen">
+    <header class="profile-page__header">
+      <span class="profile-page__eyebrow">Tu espacio Lingüízate</span>
+      <h1>Mi perfil</h1>
+      <p class="text-secondary">Personaliza tu identidad y mantén tus datos actualizados.</p>
+    </header>
+
+    <form id="profile-form" class="profile-card">
+      <AvatarPicker />
+      <div class="profile-form-grid">
+        <TextInput id="profile-name" label="Nombre visible" autocomplete="name" required placeholder="¿Cómo te llamamos?" />
+        <TextInput id="profile-email" label="Correo electrónico" type="email" disabled autocomplete="email" hint="El correo no se puede cambiar desde el perfil." />
+      <RadioGroup name="profile-gender" label="Género" value="otro" options={[{ value: 'femenino', label: 'Femenino' }, { value: 'masculino', label: 'Masculino' }, { value: 'neutro', label: 'Neutro' }, { value: 'otro', label: 'Otro' }]} />
+      </div>
+      <footer class="profile-form-actions">
+        <p id="profile-save-message" class="text-secondary" aria-live="polite"></p>
+        <Button type="submit"><i class="fas fa-check" aria-hidden="true"></i> Guardar perfil</Button>
+      </footer>
+    </form>
+  </section>
+</AppLayout>
+
+<script>
+  import { api } from '../scripts/api';
+  import { $currentUser, updateCurrentUser } from '../scripts/store';
+  import { guardRoute } from '../scripts/guards';
+  import { runAsyncAction } from '../scripts/feedback';
+  import { resolveAvatarUrl, getInitials } from '../scripts/avatar';
+
+  async function setupProfile() {
+    const screen = document.getElementById('profile-screen');
+    if (!screen || screen.dataset.initialized === 'true') return;
+    screen.dataset.initialized = 'true';
+
+    await guardRoute(['estudiante', 'profesor']);
+    const user = $currentUser.get();
+    if (!user) return;
+
+    const name = document.getElementById('profile-name') as HTMLInputElement;
+    const email = document.getElementById('profile-email') as HTMLInputElement;
+    if (name) name.value = user.name || '';
+    if (email) email.value = user.email || '';
+    const gender = document.querySelector<HTMLInputElement>(`input[name="profile-gender"][value="${user.gender || 'otro'}"]`);
+    if (gender) gender.checked = true;
+
+    const picker = document.querySelector<HTMLElement>('[data-avatar-picker]');
+    const resolvedAvatar = resolveAvatarUrl(user.avatar);
+    if (picker) picker.dataset.initialAvatar = resolvedAvatar || user.avatar || '';
+    const avatarPreview = document.getElementById('avatar-current-preview') as HTMLImageElement | null;
+    const pickerFallback = document.getElementById('avatar-preview-fallback');
+    if (pickerFallback) {
+      pickerFallback.textContent = getInitials(user.name);
+      pickerFallback.hidden = Boolean(resolvedAvatar);
+    }
+    if (avatarPreview && resolvedAvatar) {
+      avatarPreview.src = resolvedAvatar;
+      avatarPreview.hidden = false;
+    }
+    picker?.dispatchEvent(new CustomEvent('avatar-init', { detail: { avatar: resolvedAvatar || user.avatar || '' } }));
+
+    let selectedAvatar = user.avatar || '';
+    picker?.addEventListener('avatar-change', (event) => {
+      selectedAvatar = (event as CustomEvent<{ avatar: string }>).detail.avatar;
+    });
+
+    // Desplazar al selector de avatar si la URL contiene #avatar
+    if (window.location.hash === '#avatar') {
+      setTimeout(() => {
+        document.getElementById('avatar')?.scrollIntoView({ behavior: 'smooth' });
+      }, 150);
+    }
+
+    document.getElementById('profile-form')?.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      const form = event.currentTarget as HTMLFormElement;
+      const button = form.querySelector<HTMLButtonElement>('button[type="submit"]');
+      const selectedGender = document.querySelector<HTMLInputElement>('input[name="profile-gender"]:checked')?.value || 'otro';
+
+      await runAsyncAction(button, async () => {
+        const result = await api.patch<{ user: typeof user }>('/users/me', {
+          name: name.value.trim(),
+          gender: selectedGender,
+          avatar: selectedAvatar || null
+        });
+        updateCurrentUser(result.user);
+        const message = document.getElementById('profile-save-message');
+        if (message) message.textContent = 'Perfil guardado.';
+      }, {
+        loadingLabel: 'Guardando…',
+        successMessage: 'Tu perfil está actualizado.',
+        errorPrefix: 'No se pudo guardar el perfil'
+      });
+    });
+  }
+  setupProfile();
+  document.addEventListener('astro:page-load', setupProfile);
+</script>

@@ -1,0 +1,9 @@
+---
+interface Props { src?: string | null; name?: string; size?: 'sm' | 'md' | 'lg'; class?: string; }
+const { src, name = 'Usuario', size = 'md', class: className = '' } = Astro.props;
+const initials = name.trim().split(/\s+/).slice(0, 2).map((part) => part[0]).join('').toUpperCase() || '?';
+---
+<span class:list={['ui-avatar', `ui-avatar--${size}`, className]} data-avatar-root>
+  <img class="ui-avatar__image" src={src || undefined} alt={src ? `Avatar de ${name}` : ''} data-avatar-image hidden={!src} />
+  <span class="ui-avatar__fallback" data-avatar-fallback={!src} hidden={Boolean(src)}>{initials}</span>
+</span>

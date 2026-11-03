@@ -1,0 +1,15 @@
+---
+import FormField from './FormField.astro';
+export interface SelectOption { value: string; label: string; disabled?: boolean; }
+interface Props { id: string; label?: string; name?: string; options?: SelectOption[]; value?: string; placeholder?: string; required?: boolean; disabled?: boolean; hint?: string; error?: string; }
+const { id, label, name = id, options = [], value = '', placeholder, required = false, disabled = false, hint, error } = Astro.props;
+const useSlot = Astro.slots.has('default');
+---
+{label ? <FormField id={id} label={label} hint={hint} error={error} required={required}>
+  <span class="ui-select-wrap"><select class="ui-control ui-select" id={id} name={name} required={required} disabled={disabled} aria-describedby={error || hint ? `${id}-description` : undefined}>
+    {useSlot ? <slot /> : <>
+      {placeholder && <option value="" disabled selected={!value}>{placeholder}</option>}
+      {options.map((option) => <option value={option.value} selected={option.value === value} disabled={option.disabled}>{option.label}</option>)}
+    </>}
+  </select><i class="fas fa-chevron-down" aria-hidden="true"></i></span>
+</FormField> : <span class="ui-select-wrap"><select class="ui-control ui-select" id={id} name={name} required={required} disabled={disabled}>{useSlot ? <slot /> : options.map((option) => <option value={option.value} selected={option.value === value} disabled={option.disabled}>{option.label}</option>)}</select><i class="fas fa-chevron-down" aria-hidden="true"></i></span>}

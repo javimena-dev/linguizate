@@ -1,0 +1,10 @@
+---
+interface Props { title: string; description?: string; icon?: string; class?: string; }
+const { title, description, icon = 'fa-inbox', class: className = '' } = Astro.props;
+---
+<div class:list={['ui-empty-state', className]} role="status">
+  <span class="ui-empty-state__icon"><i class:list={['fas', icon]} aria-hidden="true"></i></span>
+  <h2>{title}</h2>
+  {description && <p>{description}</p>}
+  <slot />
+</div>

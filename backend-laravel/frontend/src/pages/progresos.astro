@@ -1,0 +1,244 @@
+---
+import AppLayout from '../layouts/AppLayout.astro';
+---
+<AppLayout title="Mis Progresos - Lingüízate" showBack backUrl="/">
+  <div class="container" id="progress-screen" style="max-width: 960px; padding: 40px 16px;">
+    <header style="margin-bottom: 24px;">
+      <h2 style="font-size: 2.2rem; margin-bottom: 8px;">
+        <i class="fas fa-chart-line" style="color: var(--primary-color); margin-right: 10px;"></i>
+        Mis Progresos
+      </h2>
+      <p class="text-secondary">Monitorea tu evolución, precisión y dominio de las disciplinas lingüísticas</p>
+    </header>
+
+    <!-- Banner de Rango XP -->
+    <div class="card" style="background: linear-gradient(135deg, rgba(99, 102, 241, 0.12), rgba(168, 85, 247, 0.12)); border-radius: var(--border-radius); border: 1px solid var(--border-color); padding: 24px; margin-bottom: 30px;">
+      <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 12px; flex-wrap: wrap;">
+        <h3 id="user-rank-title" style="font-size: 1.4rem; font-weight: 700;">Novato Lingüístico</h3>
+        <span id="user-score-xp" style="font-size: 1.2rem; font-weight: 700; color: var(--primary-color);">0 XP</span>
+      </div>
+      <div class="progress-bar" style="height: 10px; background: rgba(0,0,0,0.1); border-radius: 5px; overflow: hidden; margin-bottom: 8px;">
+        <div id="user-xp-fill" style="height: 100%; width: 20%; background: linear-gradient(90deg, var(--primary-color), var(--accent-color)); transition: width 0.5s;"></div>
+      </div>
+      <small id="user-xp-text" class="text-secondary">Acumula puntos jugando trivias para subir de rango</small>
+    </div>
+
+    <!-- Grid de métricas y radar -->
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 24px; margin-bottom: 30px;">
+      <!-- Gráfico de Radar -->
+      <div class="card" style="background: var(--bg-primary); border-radius: var(--border-radius); border: 1px solid var(--border-color); padding: 24px;">
+        <h4 style="font-size: 1.15rem; margin-bottom: 16px;">
+          <i class="fas fa-compass" style="color: var(--accent-color);"></i> Dominio por Disciplina
+        </h4>
+        <div style="position: relative; height: 260px; display: flex; align-items: center; justify-content: center;">
+          <canvas id="progresos-radar-chart"></canvas>
+        </div>
+      </div>
+
+      <!-- Estadísticas rápidas -->
+      <div class="card" style="background: var(--bg-primary); border-radius: var(--border-radius); border: 1px solid var(--border-color); padding: 24px; display: flex; flex-direction: column; justify-content: space-between;">
+        <h4 style="font-size: 1.15rem; margin-bottom: 16px;">
+          <i class="fas fa-tachometer-alt" style="color: var(--success-color);"></i> Estadísticas de Partidas
+        </h4>
+        <div style="display: flex; flex-direction: column; gap: 16px;">
+          <div style="display: flex; justify-content: space-between; border-bottom: 1px solid var(--table-row-border); padding-bottom: 10px;">
+            <span class="text-secondary">Partidas Completadas</span>
+            <strong id="stat-games-count" style="font-size: 1.1rem;">0</strong>
+          </div>
+          <div style="display: flex; justify-content: space-between; border-bottom: 1px solid var(--table-row-border); padding-bottom: 10px;">
+            <span class="text-secondary">Preguntas Respondidas</span>
+            <strong id="stat-questions-count" style="font-size: 1.1rem;">0</strong>
+          </div>
+          <div style="display: flex; justify-content: space-between; border-bottom: 1px solid var(--table-row-border); padding-bottom: 10px;">
+            <span class="text-secondary">Precisión Global</span>
+            <strong id="stat-accuracy" style="font-size: 1.1rem; color: var(--success-color);">0%</strong>
+          </div>
+          <div style="display: flex; justify-content: space-between; border-bottom: 1px solid var(--table-row-border); padding-bottom: 10px;">
+            <span class="text-secondary">Tiempo Promedio</span>
+            <strong id="stat-avg-time" style="font-size: 1.1rem;">0s</strong>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Historial de partidas recientes -->
+    <div class="card" style="background: var(--bg-primary); border-radius: var(--border-radius); border: 1px solid var(--border-color); padding: 24px;">
+      <h4 style="font-size: 1.15rem; margin-bottom: 16px;">
+        <i class="fas fa-history" style="color: var(--secondary-color);"></i> Historial Reciente de Partidas
+      </h4>
+      <div id="games-history-list">
+        <p class="text-secondary" id="history-loading">Cargando historial...</p>
+      </div>
+    </div>
+  </div>
+</AppLayout>
+
+<script>
+  import { api } from '../scripts/api';
+  import { $currentUser } from '../scripts/store';
+  import { guardRoute } from '../scripts/guards';
+  import { notify } from '../scripts/feedback';
+
+  let radarChart: any = null;
+  const escapeHtml = (value: unknown) => String(value ?? '').replace(/[&<>'"]/g, (char) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#039;', '"': '&quot;' }[char]!));
+
+  async function loadProgress(force = false) {
+    const screen = document.getElementById('progress-screen');
+    if (!screen) return;
+    if (!force && screen.dataset.initialized === 'true') return;
+    screen.dataset.initialized = 'true';
+
+    await guardRoute('estudiante');
+    const user = $currentUser.get();
+    if (!user) return;
+
+    const rankTitle = document.getElementById('user-rank-title');
+    const rankScore = document.getElementById('user-score-xp');
+    const xpFill = document.getElementById('user-xp-fill');
+    const xpText = document.getElementById('user-xp-text');
+
+    const statGames = document.getElementById('stat-games-count');
+    const statQuestions = document.getElementById('stat-questions-count');
+    const statAccuracy = document.getElementById('stat-accuracy');
+    const statAvgTime = document.getElementById('stat-avg-time');
+    const historyList = document.getElementById('games-history-list');
+
+    // Skeletons iniciales
+    if (historyList) {
+      historyList.innerHTML = '<div style="padding: 16px 0;"><span class="wave-loader" aria-hidden="true"><i></i><i></i><i></i></span> <span class="text-secondary" style="margin-left: 8px;">Cargando historial de partidas…</span></div>';
+    }
+
+    if (user) {
+      if (rankScore) rankScore.textContent = `${user.score || 0} XP`;
+      let rank = 'Novato Lingüístico';
+      let pct = 25;
+      if (user.score > 2000) { rank = 'Maestro de la RAE'; pct = 100; }
+      else if (user.score > 1000) { rank = 'Erudito Sintáctico'; pct = 75; }
+      else if (user.score > 500) { rank = 'Investigador Fonológico'; pct = 50; }
+
+      if (rankTitle) rankTitle.textContent = rank;
+      if (xpFill) xpFill.style.width = `${pct}%`;
+      if (xpText) xpText.textContent = `Puntaje acumulado: ${user.score} XP`;
+    }
+
+    try {
+      const [progress, res] = await Promise.all([
+        api.get<{ summary: { score: number; gamesPlayed: number; totalAnswers: number; accuracy: number; bestStreak: number }; dimensions: Array<{ label: string; accuracy: number }>; achievements: string[] }>('/users/me/progress'),
+        api.get<{ games: any[] }>('/users/me/games')
+      ]);
+      const games = res.games || [];
+      const summary = progress.summary;
+      if (rankScore) rankScore.textContent = `${summary.score || 0} XP`;
+      const score = summary.score || 0;
+      const rank = score >= 2000 ? 'Maestro de la RAE' : score >= 1000 ? 'Erudito Sintáctico' : score >= 500 ? 'Investigador Fonológico' : 'Novato Lingüístico';
+      const nextScore = score < 500 ? 500 : score < 1000 ? 1000 : score < 2000 ? 2000 : score;
+      if (rankTitle) rankTitle.textContent = rank;
+      if (xpFill) xpFill.style.width = `${Math.min(100, Math.round((score / nextScore) * 100))}%`;
+      if (xpText) xpText.textContent = `Racha máxima: ${summary.bestStreak}. Logros: ${progress.achievements.join(', ') || 'por desbloquear'}`;
+
+      if (statGames) statGames.textContent = String(summary.gamesPlayed);
+
+      let totalQuestions = 0;
+      let totalCorrect = 0;
+      let totalTime = 0;
+
+      games.forEach((g) => {
+        totalQuestions += (g.correctAnswers || 0) + (g.incorrectAnswers || 0);
+        totalCorrect += g.correctAnswers || 0;
+        totalTime += (g.avgResponseTimeSeconds || 0);
+      });
+
+      if (statQuestions) statQuestions.textContent = String(summary.totalAnswers);
+      if (statAccuracy) statAccuracy.textContent = `${summary.accuracy}%`;
+      const avgTime = games.length > 0 ? (totalTime / games.length).toFixed(1) : '0';
+      if (statAvgTime) statAvgTime.textContent = `${avgTime}s`;
+
+      // Renderizar historial
+      if (historyList) {
+        if (!games.length) {
+          historyList.innerHTML = '<p class="text-secondary">Aún no has jugado ninguna partida con esta cuenta.</p>';
+        } else {
+          historyList.innerHTML = games
+            .slice(0, 10)
+            .map((g) => {
+              const dateStr = g.date ? new Date(g.date).toLocaleDateString() : '';
+              return `
+                <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid var(--table-row-border); flex-wrap: wrap; gap: 8px;">
+                  <div>
+                    <strong style="display: block; font-size: 1rem;">${escapeHtml(g.subcategoryName || g.categoryName)}</strong>
+                    <small class="text-secondary">${dateStr} • Modo ${g.mode || 'clásico'}</small>
+                  </div>
+                  <div style="text-align: right;">
+                    <span style="font-weight: 700; color: var(--primary-color); font-size: 1.1rem;">+${g.score} pts</span>
+                    <small style="display: block; color: var(--success-color);">${g.correctAnswers} / ${g.totalQuestions} aciertos</small>
+                  </div>
+                </div>
+              `;
+            })
+            .join('');
+        }
+      }
+
+      // Radar con desempeño real por categoría (importación dinámica de Chart.js)
+      const canvas = document.getElementById('progresos-radar-chart') as HTMLCanvasElement | null;
+      if (canvas) {
+        const { default: Chart } = await import('chart.js/auto');
+        radarChart?.destroy();
+        const dimensions = progress.dimensions.length ? progress.dimensions : [{ label: 'Sin partidas', accuracy: 0 }];
+        radarChart = new Chart(canvas, {
+          type: 'radar',
+          data: {
+            labels: dimensions.map((dimension) => dimension.label),
+            datasets: [
+              {
+                label: 'Dominio Estimado',
+                data: dimensions.map((dimension) => dimension.accuracy),
+                fill: true,
+                backgroundColor: 'rgba(99, 102, 241, 0.2)',
+                borderColor: '#6366f1',
+                pointBackgroundColor: '#6366f1',
+                pointBorderColor: '#fff',
+                pointHoverBackgroundColor: '#fff',
+                pointHoverBorderColor: '#6366f1'
+              }
+            ]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+              r: {
+                angleLines: { color: 'rgba(150, 150, 150, 0.2)' },
+                grid: { color: 'rgba(150, 150, 150, 0.2)' },
+                suggestedMin: 0,
+                suggestedMax: 100,
+                ticks: { display: false }
+              }
+            },
+            plugins: {
+              legend: { display: false }
+            }
+          }
+        });
+      }
+    } catch (error: any) {
+      if (historyList) {
+        historyList.innerHTML = `
+          <div style="text-align: center; padding: 24px;">
+            <p class="text-secondary" style="color: var(--error-color); margin-bottom: 12px;">
+              ${escapeHtml(error.message || 'No se pudo cargar tu progreso.')}
+            </p>
+            <button type="button" class="btn-secondary" id="btn-retry-progresos">
+              <i class="fas fa-redo"></i> Reintentar
+            </button>
+          </div>
+        `;
+        document.getElementById('btn-retry-progresos')?.addEventListener('click', () => void loadProgress(true));
+      }
+      notify({ kind: 'error', message: error.message || 'No se pudo cargar tu progreso.' });
+    }
+  }
+
+  loadProgress();
+  document.addEventListener('astro:page-load', () => void loadProgress());
+</script>

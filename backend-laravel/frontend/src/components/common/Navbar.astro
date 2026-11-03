@@ -1,0 +1,211 @@
+---
+import Avatar from '../ui/Avatar.astro';
+
+interface Props {
+  showBack?: boolean;
+  backUrl?: string;
+  backTitle?: string;
+}
+
+const { showBack = false, backUrl = '/', backTitle = 'Volver' } = Astro.props;
+---
+<nav class="app-navbar" id="app-navbar">
+  <div class="navbar-start">
+    <button id="btn-sidebar-toggle" class="navbar-btn sidebar-toggle-btn" type="button" data-tooltip="Abrir menú" aria-label="Abrir menú" aria-controls="app-sidebar" aria-expanded="false" hidden>
+      <i class="fas fa-bars" aria-hidden="true"></i>
+    </button>
+    <a href="/" class="navbar-logo" id="navbar-logo" aria-label="Ir al inicio" data-tooltip="Ir al inicio">
+      <img
+        src="/assets/images/portada/log.png"
+        alt="Lingüízate"
+        class="brand-logo-img brand-logo-img--navbar"
+        width="160"
+        height="40"
+        decoding="async"
+      />
+    </a>
+    {showBack && (
+      <div class="navbar-nav-context">
+        <a href={backUrl} class="navbar-btn navbar-back-btn" data-tooltip={backTitle} aria-label={backTitle}>
+          <i class="fas fa-arrow-left" aria-hidden="true"></i>
+          <span class="navbar-back-text">{backTitle}</span>
+        </a>
+      </div>
+    )}
+  </div>
+
+  <div class="navbar-actions">
+    <!-- Usuario con sesión -->
+    <div id="navbar-user-wrap" class="navbar-user-wrap" style="display: none;">
+      <button type="button" id="navbar-user" class="navbar-user" data-tooltip="Opciones de cuenta" aria-label="Opciones de cuenta" aria-haspopup="true" aria-expanded="false">
+        <Avatar name="Usuario" size="sm" class="navbar-avatar" />
+        <span class="navbar-user-dot" aria-hidden="true"></span>
+        <span id="navbar-user-name" class="navbar-user-name">Usuario</span>
+        <i class="fas fa-chevron-down navbar-user-chevron"></i>
+      </button>
+      <div id="navbar-user-dropdown" class="navbar-user-dropdown" role="menu" hidden>
+        <a href="/perfil" class="navbar-dropdown-item" role="menuitem" id="navbar-link-profile">
+          <i class="fas fa-user-pen"></i> Mi perfil
+        </a>
+        <a href="/perfil#avatar" class="navbar-dropdown-item" role="menuitem" id="navbar-link-avatar">
+          <i class="fas fa-image"></i> Cambiar avatar
+        </a>
+        <a href="/progresos" class="navbar-dropdown-item" role="menuitem" id="navbar-link-progresos">
+          <i class="fas fa-chart-line"></i> Mis Progresos
+        </a>
+        <a href="/biblioteca" class="navbar-dropdown-item" role="menuitem" id="navbar-link-biblioteca">
+          <i class="fas fa-book"></i> Mi Biblioteca
+        </a>
+        <button type="button" id="navbar-btn-logout" class="navbar-dropdown-item" role="menuitem">
+          <i class="fas fa-sign-out-alt"></i> Cerrar Sesión
+        </button>
+      </div>
+    </div>
+
+    <!-- Botón iniciar sesión si es invitado -->
+    <a href="/login" id="btn-login-nav" class="navbar-btn" data-tooltip="Iniciar sesión" aria-label="Iniciar sesión">
+      <i class="fas fa-user"></i>
+      <span>Iniciar Sesión</span>
+    </a>
+
+    <a href="/ranking" id="btn-ranking-nav" class="navbar-btn" data-tooltip="Ver ranking" aria-label="Ver ranking">
+      <i class="fas fa-trophy"></i>
+      <span>Ranking</span>
+    </a>
+
+    <!-- Control de música ambiental -->
+    <button id="music-toggle" class="navbar-btn" type="button" data-tooltip="Activar música" aria-label="Activar música">
+      <i class="fas fa-volume-up" id="music-icon"></i>
+    </button>
+
+    <!-- Control de tema claro/oscuro -->
+    <button id="theme-toggle" class="navbar-btn theme-toggle-btn" type="button" data-tooltip="Activar tema oscuro" aria-label="Activar tema oscuro">
+      <i class="fas fa-moon" id="theme-icon"></i>
+    </button>
+  </div>
+</nav>
+
+<script>
+  import { navigate } from 'astro:transitions/client';
+  import { $currentUser, $isDarkMode, $isMusicEnabled, toggleTheme, toggleMusic, logoutUser } from '../../scripts/store';
+  import { runAsyncAction } from '../../scripts/feedback';
+  import { applyAvatar } from '../../scripts/avatar';
+
+  function setupNavbar() {
+    const navbar = document.getElementById('app-navbar');
+    if (!navbar || navbar.dataset.initialized === 'true') return;
+    navbar.dataset.initialized = 'true';
+
+    const userWrap = document.getElementById('navbar-user-wrap');
+    const loginBtn = document.getElementById('btn-login-nav');
+    const userNameEl = document.getElementById('navbar-user-name');
+    const userAvatarEl = document.querySelector<HTMLElement>('.navbar-avatar');
+    const userDropdown = document.getElementById('navbar-user-dropdown');
+    const userToggle = document.getElementById('navbar-user');
+    const logoutBtn = document.getElementById('navbar-btn-logout') as HTMLButtonElement | null;
+    const themeBtn = document.getElementById('theme-toggle');
+    const themeIcon = document.getElementById('theme-icon');
+    const musicBtn = document.getElementById('music-toggle');
+    const musicIcon = document.getElementById('music-icon');
+    const sidebarToggle = document.getElementById('btn-sidebar-toggle') as HTMLButtonElement | null;
+    const linkProgresos = document.getElementById('navbar-link-progresos');
+    const linkBiblioteca = document.getElementById('navbar-link-biblioteca');
+    const linkProfile = document.getElementById('navbar-link-profile');
+    const linkAvatar = document.getElementById('navbar-link-avatar');
+    const controller = new AbortController();
+
+    // Suscripción al estado de usuario
+    const unsubscribeUser = $currentUser.subscribe((user) => {
+      if (user) {
+        if (userWrap) userWrap.style.display = 'block';
+        if (loginBtn) loginBtn.style.display = 'none';
+        if (sidebarToggle) sidebarToggle.hidden = false;
+        if (userNameEl) userNameEl.textContent = user.name;
+        // Aplicar avatar con resolución de rutas legacy
+        applyAvatar(userAvatarEl, user.name, user.avatar);
+        // Ocultar enlaces de estudiante para profesores/admin
+        if (linkProgresos) linkProgresos.style.display = user.isProfesor || user.isAdmin ? 'none' : '';
+        if (linkBiblioteca) linkBiblioteca.style.display = user.isProfesor || user.isAdmin ? 'none' : '';
+        if (linkProfile) linkProfile.style.display = user.isAdmin ? 'none' : '';
+        if (linkAvatar) linkAvatar.style.display = user.isAdmin ? 'none' : '';
+      } else {
+        if (userWrap) userWrap.style.display = 'none';
+        if (loginBtn) loginBtn.style.display = 'inline-flex';
+        if (sidebarToggle) sidebarToggle.hidden = true;
+      }
+    });
+
+    // Menú desplegable usuario
+    userToggle?.addEventListener('click', (e) => {
+      e.stopPropagation();
+      if (!userDropdown) return;
+      const isOpen = !userDropdown.hidden;
+      userDropdown.hidden = isOpen;
+      userToggle.setAttribute('aria-expanded', (!isOpen).toString());
+    });
+
+    document.addEventListener('click', () => {
+      if (userDropdown && !userDropdown.hidden) {
+        userDropdown.hidden = true;
+        userToggle?.setAttribute('aria-expanded', 'false');
+      }
+    }, { signal: controller.signal });
+
+    // Escape cierra el dropdown
+    userToggle?.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape' && userDropdown && !userDropdown.hidden) {
+        userDropdown.hidden = true;
+        userToggle.setAttribute('aria-expanded', 'false');
+        userToggle.focus();
+      }
+    });
+
+    // Logout con runAsyncAction
+    logoutBtn?.addEventListener('click', async () => {
+      await runAsyncAction(logoutBtn, async () => {
+        await logoutUser();
+        await navigate('/');
+      }, { loadingLabel: 'Saliendo…', silent: true });
+    });
+
+    // Tema — acción síncrona, solo feedback visual
+    themeBtn?.addEventListener('click', () => {
+      themeBtn.classList.add('btn-tap');
+      setTimeout(() => themeBtn.classList.remove('btn-tap'), 200);
+      const isDark = toggleTheme();
+      if (themeIcon) themeIcon.className = isDark ? 'fas fa-sun' : 'fas fa-moon';
+    });
+
+    const unsubscribeTheme = $isDarkMode.subscribe((isDark) => {
+      const label = isDark ? 'Activar tema claro' : 'Activar tema oscuro';
+      themeBtn?.setAttribute('aria-label', label);
+      themeBtn?.setAttribute('data-tooltip', label);
+      if (themeIcon) themeIcon.className = isDark ? 'fas fa-sun' : 'fas fa-moon';
+    });
+
+    // Música — acción síncrona
+    musicBtn?.addEventListener('click', () => {
+      musicBtn.classList.add('btn-tap');
+      setTimeout(() => musicBtn.classList.remove('btn-tap'), 200);
+      const active = toggleMusic();
+      if (musicIcon) musicIcon.className = active ? 'fas fa-volume-up' : 'fas fa-volume-mute';
+    });
+
+    const unsubscribeMusic = $isMusicEnabled.subscribe((active) => {
+      const label = active ? 'Silenciar música' : 'Activar música';
+      musicBtn?.setAttribute('aria-label', label);
+      musicBtn?.setAttribute('data-tooltip', label);
+      if (musicIcon) musicIcon.className = active ? 'fas fa-volume-up' : 'fas fa-volume-mute';
+    });
+
+    document.addEventListener('astro:before-swap', () => {
+      controller.abort();
+      unsubscribeUser();
+      unsubscribeTheme();
+      unsubscribeMusic();
+    }, { once: true });
+  }
+
+  setupNavbar();
+  document.addEventListener('astro:page-load', setupNavbar);
+</script>

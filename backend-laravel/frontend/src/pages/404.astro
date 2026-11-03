@@ -1,0 +1,16 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Brand from '../components/Brand.astro';
+---
+
+<BaseLayout title="Página no encontrada | Lingüízate">
+  <main class="simple-shell">
+    <header class="topbar"><Brand compact /></header>
+    <section class="center-card">
+      <span class="eyebrow">Error 404</span>
+      <h1>Esta palabra no está aquí.</h1>
+      <p>La página que buscas no existe o cambió de dirección.</p>
+      <div class="actions"><a class="btn btn-primary" href="/">Volver al inicio</a></div>
+    </section>
+  </main>
+</BaseLayout>

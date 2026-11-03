@@ -1,0 +1,9 @@
+---
+interface Props {
+  id?: string;
+}
+
+const { id = 'form-alert' } = Astro.props;
+---
+
+<div class="alert" id={id} role="status" aria-live="polite" hidden></div>

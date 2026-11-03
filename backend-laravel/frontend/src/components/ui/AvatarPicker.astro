@@ -1,0 +1,153 @@
+---
+interface Props { initialAvatar?: string | null; }
+const { initialAvatar = '' } = Astro.props;
+const presets = Array.from({ length: 6 }, (_, index) => `/assets/images/avatares/avatar-${String(index + 1).padStart(2, '0')}.png`);
+---
+<section class="avatar-picker" id="avatar" data-avatar-picker data-initial-avatar={initialAvatar || ''} aria-label="Selector de avatar">
+  <div class="avatar-picker__preview"><img id="avatar-current-preview" alt="Vista previa del avatar" /><span id="avatar-preview-fallback" hidden>?</span></div>
+  <div class="avatar-picker__content">
+    <h2>Elige tu avatar</h2>
+    <p class="text-secondary">Selecciona una ilustración o sube una foto.</p>
+    <div class="avatar-picker__presets" role="group" aria-label="Avatares disponibles">
+      {presets.map((src, index) => <button type="button" class="avatar-preset" data-avatar-preset={src} aria-label={`Seleccionar avatar ${index + 1}`} aria-pressed="false"><img src={src} alt="" loading="lazy" /></button>)}
+    </div>
+    <label class="avatar-upload-button btn-secondary" for="avatar-photo-input"><i class="fas fa-image" aria-hidden="true"></i> Subir una foto</label>
+    <input id="avatar-photo-input" class="sr-only" type="file" accept="image/jpeg,image/png,image/webp" aria-label="Subir foto propia" />
+    <div class="avatar-cropper" id="avatar-cropper" hidden>
+      <p>Arrastra la imagen para centrarla. Ajusta el zoom.</p>
+      <canvas id="avatar-crop-canvas" width="320" height="320" aria-label="Vista recortada de la foto"></canvas>
+      <label for="avatar-zoom">Zoom <input id="avatar-zoom" type="range" min="1" max="3" step="0.01" value="1" /></label>
+      <button type="button" class="btn-primary" id="avatar-apply-crop">Usar esta foto</button>
+    </div>
+    <p class="ui-hint">JPEG, PNG o WebP. Máximo 8 MB antes del recorte.</p>
+  </div>
+</section>
+
+<script>
+  import { notify, setButtonLoading } from '../../scripts/feedback';
+
+  function setupAvatarPicker() {
+    const root = document.querySelector<HTMLElement>('[data-avatar-picker]');
+    if (!root || root.dataset.initialized === 'true') return;
+    root.dataset.initialized = 'true';
+    const preview = root.querySelector<HTMLImageElement>('#avatar-current-preview')!;
+    const previewFallback = root.querySelector<HTMLElement>('#avatar-preview-fallback')!;
+    const photoInput = root.querySelector<HTMLInputElement>('#avatar-photo-input')!;
+    const cropper = root.querySelector<HTMLElement>('#avatar-cropper')!;
+    const canvas = root.querySelector<HTMLCanvasElement>('#avatar-crop-canvas')!;
+    const zoomInput = root.querySelector<HTMLInputElement>('#avatar-zoom')!;
+    const apply = root.querySelector<HTMLButtonElement>('#avatar-apply-crop')!;
+    const context = canvas.getContext('2d');
+    if (!context) return;
+    let image: HTMLImageElement | null = null;
+    let zoom = 1;
+    let offsetX = 0;
+    let offsetY = 0;
+    let dragStart: { x: number; y: number; ox: number; oy: number } | null = null;
+
+    function setAvatar(src: string) {
+      preview.src = src;
+      preview.hidden = false;
+      previewFallback.hidden = true;
+      root!.querySelectorAll<HTMLButtonElement>('[data-avatar-preset]').forEach((button) => {
+        const active = button.dataset.avatarPreset === src;
+        button.classList.toggle('is-selected', active);
+        button.setAttribute('aria-pressed', String(active));
+      });
+      root!.dispatchEvent(new CustomEvent('avatar-change', { bubbles: true, detail: { avatar: src } }));
+    }
+
+    function draw() {
+      if (!image || !context) return;
+      const scale = Math.max(canvas.width / image.naturalWidth, canvas.height / image.naturalHeight) * zoom;
+      const width = image.naturalWidth * scale;
+      const height = image.naturalHeight * scale;
+      const maxX = Math.max(0, (width - canvas.width) / 2);
+      const maxY = Math.max(0, (height - canvas.height) / 2);
+      offsetX = Math.max(-maxX, Math.min(maxX, offsetX));
+      offsetY = Math.max(-maxY, Math.min(maxY, offsetY));
+      context.clearRect(0, 0, canvas.width, canvas.height);
+      context.drawImage(image, (canvas.width - width) / 2 + offsetX, (canvas.height - height) / 2 + offsetY, width, height);
+    }
+
+    root.querySelectorAll<HTMLButtonElement>('[data-avatar-preset]').forEach((button) => button.addEventListener('click', () => {
+      cropper.hidden = true;
+      photoInput.value = '';
+      setAvatar(button.dataset.avatarPreset!);
+    }));
+
+    photoInput.addEventListener('change', () => {
+      const file = photoInput.files?.[0];
+      if (!file) return;
+      if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type) || file.size > 8 * 1024 * 1024) {
+        notify({ kind: 'warning', message: 'Elige JPEG, PNG o WebP de hasta 8 MB.' });
+        photoInput.value = '';
+        return;
+      }
+      const objectUrl = URL.createObjectURL(file);
+      const loaded = new Image();
+      loaded.onload = () => {
+        URL.revokeObjectURL(objectUrl);
+        if (loaded.naturalWidth * loaded.naturalHeight > 40_000_000) {
+          notify({ kind: 'warning', message: 'La imagen tiene demasiados píxeles. Elige una imagen más pequeña.' });
+          photoInput.value = '';
+          return;
+        }
+        image = loaded;
+        zoom = 1;
+        offsetX = 0;
+        offsetY = 0;
+        zoomInput.value = '1';
+        cropper.hidden = false;
+        draw();
+      };
+      loaded.onerror = () => { URL.revokeObjectURL(objectUrl); notify({ kind: 'error', message: 'No se pudo abrir la imagen.' }); };
+      loaded.src = objectUrl;
+    });
+
+    zoomInput.addEventListener('input', () => { zoom = Number(zoomInput.value); draw(); });
+    canvas.addEventListener('pointerdown', (event) => {
+      canvas.setPointerCapture(event.pointerId);
+      dragStart = { x: event.clientX, y: event.clientY, ox: offsetX, oy: offsetY };
+    });
+    canvas.addEventListener('pointermove', (event) => {
+      if (!dragStart) return;
+      const rect = canvas.getBoundingClientRect();
+      const ratio = canvas.width / rect.width;
+      offsetX = dragStart.ox + (event.clientX - dragStart.x) * ratio;
+      offsetY = dragStart.oy + (event.clientY - dragStart.y) * ratio;
+      draw();
+    });
+    canvas.addEventListener('pointerup', () => { dragStart = null; });
+    canvas.addEventListener('pointercancel', () => { dragStart = null; });
+
+    apply.addEventListener('click', () => {
+      if (!image) return;
+      setButtonLoading(apply, true, 'Preparando foto');
+      try {
+        let quality = 0.88;
+        let dataUrl = canvas.toDataURL('image/webp', quality);
+        while (dataUrl.length > 1_400_000 && quality > 0.5) {
+          quality -= 0.08;
+          dataUrl = canvas.toDataURL('image/webp', quality);
+        }
+        if (dataUrl.length > 1_450_000) throw new Error('La foto sigue siendo demasiado grande. Reduce el zoom o elige otra imagen.');
+        cropper.hidden = true;
+        setAvatar(dataUrl);
+      } catch (error: any) {
+        notify({ kind: 'error', message: error.message || 'No se pudo procesar la foto.' });
+      } finally {
+        setButtonLoading(apply, false);
+      }
+    });
+
+    const initial = root.dataset.initialAvatar;
+    if (initial) setAvatar(initial);
+    root.addEventListener('avatar-init', (event) => {
+      const avatar = (event as CustomEvent<{ avatar?: string }>).detail?.avatar;
+      if (avatar) setAvatar(avatar);
+    });
+  }
+  setupAvatarPicker();
+  document.addEventListener('astro:page-load', setupAvatarPicker);
+</script>

@@ -22,6 +22,7 @@ class AuthController extends Controller
             'email' => ['required', 'string', 'email', 'max:255', 'unique:users,email'],
             'password' => ['required', 'string', 'min:8', 'max:72', 'confirmed'],
             'gender' => ['nullable', 'in:masculino,femenino,otro'],
+            'role' => ['nullable', 'in:estudiante'],
         ]);
 
         $user = User::create([
@@ -46,17 +47,28 @@ class AuthController extends Controller
     public function login(Request $request)
     {
         $data = $request->validate([
-            'email' => ['required', 'email'],
+            'email' => ['nullable', 'email', 'required_without:identifier'],
+            'identifier' => ['nullable', 'string', 'required_without:email'],
             'password' => ['required', 'string'],
+            'role' => ['nullable', 'in:estudiante,profesor,admin'],
+            'remember' => ['nullable', 'boolean'],
         ]);
 
-        if (! Auth::attempt(['email' => Str::lower($data['email']), 'password' => $data['password']], $request->boolean('remember'))) {
+        $identifier = Str::lower(trim($data['email'] ?? $data['identifier']));
+        $user = User::query()->whereRaw('LOWER(email) = ?', [$identifier])->orWhereRaw('LOWER(username) = ?', [$identifier])->first();
+        $valid = $user && $user->password && Hash::check($data['password'], $user->password);
+        if (! $valid) {
             return response()->json(['error' => 'Correo o contraseña incorrectos.', 'code' => 'INVALID_CREDENTIALS'], 422);
         }
 
+        if (isset($data['role']) && $data['role'] !== $user->role) {
+            return response()->json(['error' => 'El tipo de usuario no coincide con la cuenta.', 'code' => 'ROLE_MISMATCH'], 403);
+        }
+        if (Hash::needsRehash($user->password)) {
+            $user->forceFill(['password' => Hash::make($data['password'])])->save();
+        }
+        Auth::guard('web')->login($user, $request->boolean('remember'));
         $request->session()->regenerate();
-        /** @var User $user */
-        $user = $request->user();
 
         return response()->json([
             'user' => $this->userData($user),
@@ -77,7 +89,7 @@ class AuthController extends Controller
 
     public function logout(Request $request)
     {
-        Auth::logout();
+        Auth::guard('web')->logout();
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 
@@ -106,12 +118,7 @@ class AuthController extends Controller
     public function forgotPassword(Request $request)
     {
         $data = $request->validate(['email' => ['required', 'email']]);
-        $key = 'password-reset:'.$request->ip().':'.Str::lower($data['email']);
-
-        if (! RateLimiter::tooManyAttempts($key, 3)) {
-            RateLimiter::hit($key, 600);
-            Password::sendResetLink(['email' => Str::lower($data['email'])]);
-        }
+        Password::sendResetLink(['email' => Str::lower($data['email'])]);
 
         return response()->json(['message' => 'Si la cuenta existe, enviamos las instrucciones al correo.']);
     }
@@ -141,7 +148,7 @@ class AuthController extends Controller
         return response()->json(['message' => 'Contraseña actualizada. Ya puedes iniciar sesión.']);
     }
 
-    private function userData(User $user): array
+    public function userData(User $user): array
     {
         return [
             'id' => $user->id,
@@ -153,9 +160,10 @@ class AuthController extends Controller
             'isEstudiante' => $user->role === 'estudiante',
             'score' => $user->score,
             'gamesPlayed' => $user->games_played,
-            'avatar' => $user->google_avatar,
+            'avatar' => $user->avatar ?: $user->google_avatar,
             'gender' => $user->gender,
             'achievements' => $user->achievements ?? [],
+            'createdAt' => $user->created_at?->toIso8601String(),
             'emailVerified' => $user->hasVerifiedEmail(),
             'authMethods' => array_values(array_filter([
                 $user->password ? 'password' : null,
